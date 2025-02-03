@@ -6,48 +6,61 @@
  * @LastEditors: your name
  * @LastEditTime: 2024-10-12 11:14:39
  */
+import { Suspense } from 'react';
 import './style/App.css';
+import routers from '@/router';
+import { NavLink, useRoutes } from 'react-router';
 import { useState } from 'react';
-import Tictactoe from '@/pages/tictactoe/Tictactoe.jsx';
-const products = [
-  { title: 'Cabbage', isFruit: false, id: 1 },
-  { title: 'Garlic', isFruit: false, id: 2 },
-  { title: 'Apple', isFruit: true, id: 3 },
+import { ErrorBoundary } from 'react-error-boundary';
+import Loading from '@/components/Loading';
+const links = [
+  {
+    title: '井字棋',
+    url: '/tictactoe',
+  },
+  {
+    title: '虚拟列表',
+    url: '/virtualList',
+  },
 ];
 
-function MyButton({ handleClick, pointNum }) {
-  return <button onClick={handleClick}>you have clicked we {pointNum} times</button>;
-}
-
-function MyShoppingList() {
-  const listItems = products.map((product) => (
-    <li
-      key={product.id}
-      style={{
-        color: product.isFruit ? 'magenta' : 'darkgreen',
-      }}>
-      {product.title}
-    </li>
-  ));
+const MyNavLink = () => {
   return (
-    <>
-      <ul>{listItems}</ul>;
-    </>
+    <ul>
+      {links.map((link) => {
+        return (
+          <li key={link.url}>
+            <NavLink to={link.url}>{link.title}</NavLink>
+          </li>
+        );
+      })}
+    </ul>
   );
-}
+};
+
+const ErrorFallback = ({ error, resetErrorBoundary }) => {
+  return (
+    <div role="alert">
+      <p>Something went wrong:</p>
+      <pre>{error.message}</pre>
+      <button onClick={resetErrorBoundary}>Try again</button>
+    </div>
+  );
+};
 export default function MyApp() {
+  const elements = useRoutes(routers);
   const [pointNum, setPointNum] = useState(0);
   const handleClick = () => {
     setPointNum(pointNum + 1);
   };
   return (
-    // <>
-    //   <div>
-    //     <MyButton {...{ pointNum }} {...{ handleClick }} />
-    //     <MyButton handleClick={handleClick} pointNum={pointNum} />
-    //     <MyShoppingList />
-    //   </div>
-    // </>
-    <Tictactoe />
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onReset={() => {
+        window.location.href = '/';
+      }}>
+      <MyNavLink></MyNavLink>
+      <Suspense fallback={<Loading />}>{elements}</Suspense>
+    </ErrorBoundary>
   );
 }
