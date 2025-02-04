@@ -1,5 +1,15 @@
 import React, { useState, useRef } from 'react';
-const ItemList = ({ listRef, items }) => {
+const getItemStyle = ({ height, startHeight }) => {
+  return {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: height,
+    transform: `translateY(${startHeight}px)`,
+  };
+};
+const ItemList = ({ listRef, items, virtualRows, totalHeight }) => {
   // 定义初始状态：列表项和当前输入值
   const [inputValue, setInputValue] = useState('');
   // 添加新项
@@ -14,13 +24,14 @@ const ItemList = ({ listRef, items }) => {
   const removeItem = (index) => {
     setItems(items.filter((_, i) => i !== index));
   };
-
+  console.log('virtualRows.length', virtualRows.length);
   return (
     <>
       <h2>水果列表</h2>
       <div>
-        <ul ref={listRef} style={{ overflowY: 'scroll', padding: '10px', height: '50vh', width: '30vw' }}>
-          {items.map((item, index) => (
+        <ul ref={listRef} style={{ overflowY: 'scroll', margin: '10px', height: '50vh', width: '30vw' }}>
+          {/* <li style={{ height: totalHeight }}></li> */}
+          {/* {items.map((item, index) => (
             <li key={index} style={{ marginBottom: '10px' }}>
               {item}
               <button
@@ -36,7 +47,16 @@ const ItemList = ({ listRef, items }) => {
                 删除
               </button>
             </li>
-          ))}
+          ))} */}
+          {virtualRows.map(({ index, height, start }) => {
+            console.log('@@@@@');
+            const item = items[index];
+            return (
+              <li key={index} style={getItemStyle({ height, startHeight })}>
+                {item}
+              </li>
+            );
+          })}
         </ul>
       </div>
       <div style={{ marginTop: '20px' }}>
