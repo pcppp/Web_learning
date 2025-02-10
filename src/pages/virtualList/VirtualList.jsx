@@ -6,13 +6,13 @@ export default function VirtualList() {
   const [items, setItems] = useState(['苹果', ...Array.from({ length: 100 }, () => '香蕉'), '橙子']);
 
   const virtualizer = useVirtual({ size: items.length, estimateSize: () => 20, parentRef: listRef, overscan: 20 });
-  console.log('virtualizer.virtualItems', virtualizer.virtualItems);
+  // console.log('virtualizer.virtualItems', virtualizer.virtualItems);
 
   return (
     <ItemList
       listRef={listRef}
       items={items}
       virtualRows={virtualizer.virtualItems}
-      totalHeight={virtualizer.totalSize}></ItemList>
+      totalHeight={virtualizer.totalHeight}></ItemList>
   );
 }
