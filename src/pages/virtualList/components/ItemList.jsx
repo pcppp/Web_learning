@@ -24,14 +24,13 @@ const ItemList = ({ listRef, items, virtualRows, totalHeight }) => {
   const removeItem = (index) => {
     setItems(items.filter((_, i) => i !== index));
   };
-  console.log('virtualRows', virtualRows);
   return (
     <>
       <h2>水果列表</h2>
       <div>
         <ul
           ref={listRef}
-          style={{ overflowY: 'scroll', margin: '10px', height: '50vh', width: '30vw', position: 'relative' }}>
+          style={{ overflowY: 'scroll', margin: '0', height: '50vh', width: '30vw', position: 'relative' }}>
           <li style={{ height: totalHeight, visibility: 'hidden' }}></li>
           {/* {items.map((item, index) => (
             <li key={index} style={{ marginBottom: '10px' }}>
