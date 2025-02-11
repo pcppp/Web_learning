@@ -1,8 +1,9 @@
 import { useEffect, useCallback, useMemo, useState, useRef } from 'react';
+import useThrottle from './useThrottle';
+import useDebounce from './useDebounce';
 const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
   const itemHeights = useMemo(() => Array.from({ length: size }, (_, i) => estimateSize(i)), [estimateSize, size]);
   const [startIndex, setStartIndex] = useState(0);
-
   const [virtualRows, setVirtualRows] = useState([]);
   const cumulativeHeights = (startIndex, height) => {
     // 计算当前能够承下的元素数量
@@ -24,10 +25,16 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
 
   // 整个容器的高度
   const wraperHeight = useMemo(() => itemHeights.reduce((sum, height) => sum + height, 0), [itemHeights]);
-
+  const handleScroll = useCallback(() => {
+    const scrollTop = parentRef.current.scrollTop;
+    console.log(scrollTop + parentRef.current.clientHeight);
+    renderList(scrollTop);
+  }, [parentRef]);
+  const throttledHandleScroll = useThrottle(handleScroll, 30);
+  // const throttledAndDebounceHandleScroll = useDebounce(throttledHandleScroll, 100);
   const renderList = useCallback(
     (scrollTop) => {
-      console.log('🚀 ~ useVirtual ~ scrollTop:', scrollTop);
+      // console.log('🚀 ~ useVirtual ~ scrollTop:', scrollTop);
       let negativeStartHeight = scrollTop;
       let startHeight = scrollTop;
       let renderStartIndex = cumulativeHeights(startIndex, scrollTop);
@@ -60,23 +67,20 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
         }
       }
       setVirtualRows(listArr);
-      console.log('🚀 ~ useVirtual ~ listArr:', listArr);
+      // console.log('🚀 ~ useVirtual ~ listArr:', listArr);
     },
     [startIndex, itemHeights]
   );
-  const handleScroll = useCallback(() => {
-    const scrollTop = parentRef.current.scrollTop;
-    renderList(scrollTop);
-  }, [parentRef]);
+
   useEffect(() => {
     if (parentRef.current) {
       const scrollTop = parentRef.current.scrollTop;
       renderList(scrollTop);
-      parentRef.current.addEventListener('scroll', handleScroll);
+      parentRef.current.addEventListener('scroll', throttledHandleScroll);
     }
     return () => {
       if (parentRef.current) {
-        parentRef.current.removeEventListener('scroll', handleScroll);
+        parentRef.current.removeEventListener('scroll', throttledHandleScroll);
       }
     };
   }, [handleScroll]);
