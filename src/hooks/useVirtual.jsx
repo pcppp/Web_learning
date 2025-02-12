@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useMemo, useState, useRef } from 'react';
 import useThrottle from './useThrottle';
 import useDebounce from './useDebounce';
+import useThrottleAndDeounce from './useThrottleAndDebounce';
 const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
   const itemHeights = useMemo(() => Array.from({ length: size }, (_, i) => estimateSize(i)), [estimateSize, size]);
   const [startIndex, setStartIndex] = useState(0);
@@ -30,11 +31,9 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
     console.log(scrollTop + parentRef.current.clientHeight);
     renderList(scrollTop);
   }, [parentRef]);
-  const throttledHandleScroll = useThrottle(handleScroll, 30);
-  // const throttledAndDebounceHandleScroll = useDebounce(throttledHandleScroll, 100);
+  const throttledHandleScroll = useThrottleAndDeounce(handleScroll, 30, 100);
   const renderList = useCallback(
     (scrollTop) => {
-      // console.log('🚀 ~ useVirtual ~ scrollTop:', scrollTop);
       let negativeStartHeight = scrollTop;
       let startHeight = scrollTop;
       let renderStartIndex = cumulativeHeights(startIndex, scrollTop);
@@ -67,7 +66,6 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
         }
       }
       setVirtualRows(listArr);
-      // console.log('🚀 ~ useVirtual ~ listArr:', listArr);
     },
     [startIndex, itemHeights]
   );

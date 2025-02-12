@@ -1,4 +1,5 @@
-const useThrottle = (func, time = 500) => {
+import useDebounce from './useDebounce';
+const useThrottle = (func, time = 500, isUseDebounce = false, debounceTime = 500) => {
   let startTime = performance.now();
   const handleThrottle = (...arg) => {
     const currentTime = performance.now();
@@ -7,6 +8,7 @@ const useThrottle = (func, time = 500) => {
       return func(...arg);
     }
   };
+
   return handleThrottle;
 };
 export default useThrottle;
