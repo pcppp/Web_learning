@@ -9,17 +9,20 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
   const cumulativeHeights = (startIndex, height) => {
     // 计算当前能够承下的元素数量
     let i = startIndex;
+    console.log('start', startIndex);
     let sum = 0;
     while (sum <= height) {
       sum += itemHeights[i];
       i++;
     }
+    console.log('end', i);
     return i - 1;
   };
 
   const getEndIndex = useCallback(
     (startIndex) => {
-      return Math.min(startIndex + cumulativeHeights(startIndex, parentRef.current.clientHeight), size - 1);
+      const endIndex = Math.min(cumulativeHeights(startIndex, parentRef.current.clientHeight), size - 1);
+      return endIndex;
     },
     [parentRef]
   );
@@ -37,18 +40,17 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
 
   const renderList = useCallback(
     (scrollTop) => {
-      console.log('======= scrollTop =======\n', scrollTop);
-
       let negativeStartHeight = scrollTop;
       let startHeight = scrollTop;
       let renderStartIndex = cumulativeHeights(startIndex, scrollTop);
       let listArr = [];
+      console.log('======= renderStartIndex =======\n', renderStartIndex);
+
+      const renderEndIndex = getEndIndex(renderStartIndex);
+      console.log('======= renderEndIndex =======\n', renderEndIndex);
       setStartIndex(renderStartIndex);
-      for (
-        let i = Math.max(renderStartIndex - overscan, 0);
-        i < Math.min(size, getEndIndex(renderStartIndex) + overscan);
-        i++
-      ) {
+
+      for (let i = Math.max(renderStartIndex - overscan, 0); i < Math.min(size, renderEndIndex + overscan); i++) {
         if (renderStartIndex < overscan && i < renderStartIndex) {
           const overscan = renderStartIndex;
           negativeStartHeight -= itemHeights[renderStartIndex - i];
@@ -69,6 +71,7 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
           startHeight += itemHeights[i];
         }
       }
+      console.log('======= listArr =======\n', listArr);
 
       setVirtualRows(listArr);
     },
