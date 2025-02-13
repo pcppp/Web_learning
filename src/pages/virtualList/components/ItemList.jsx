@@ -19,7 +19,6 @@ const ItemList = ({ listRef, items, virtualRows, totalHeight }) => {
       setInputValue(''); // 清空输入框
     }
   };
-
   // 删除某一项
   const removeItem = (index) => {
     setItems(items.filter((_, i) => i !== index));
@@ -30,7 +29,14 @@ const ItemList = ({ listRef, items, virtualRows, totalHeight }) => {
       <div>
         <ul
           ref={listRef}
-          style={{ overflowY: 'scroll', margin: '0', height: '50vh', width: '30vw', position: 'relative' }}>
+          style={{
+            overflowY: 'scroll',
+            margin: '0',
+            height: '50vh',
+            width: '30vw',
+            position: 'relative',
+            overscrollBehavior: 'none',
+          }}>
           <li style={{ height: totalHeight, visibility: 'hidden' }}></li>
           {/* {items.map((item, index) => (
             <li key={index} style={{ marginBottom: '10px' }}>
