@@ -42,10 +42,7 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
   const wrapperHeight = useMemo(() => itemHeights.reduce((sum, height) => sum + height, 0), [itemHeights]);
   const handleScroll = useCallback(() => {
     const scrollTop = parentRef.current.scrollTop;
-    // if (!(scrollTop + parentRef.current.clientHeight > wrapperHeight && lastScrollTop.current < scrollTop)) {
-    if (scrollTop + parentRef.current.clientHeight < wrapperHeight) {
-      renderList(scrollTop);
-    }
+    renderList(scrollTop);
     lastScrollTop.current = scrollTop;
   }, [parentRef]);
   const throttleAndDebounceHandleScroll = useThrottleAndDebounce(handleScroll, 30, 30);
@@ -53,8 +50,6 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
   const renderList = useCallback(
     (scrollTop) => {
       let negativeStartHeight = scrollTop;
-      let startHeight = scrollTop;
-      // let renderStartIndex = cumulativeHeights(startIndex, scrollTop);
       let renderStartIndex = getStartIndex(0, size, scrollTop);
       let listArr = [];
       const renderEndIndex = getEndIndex(renderStartIndex);
@@ -77,13 +72,17 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
             start: negativeStartHeight,
           });
         } else {
-          listArr.push({ index: i, height: itemHeights[i], start: startHeight });
-          startHeight += itemHeights[i];
+          listArr.push({ index: i, height: itemHeights[i], start: cumulativeIndexHeights[i] });
         }
+      }
+      const maxScrollTop = wrapperHeight - parentRef.current.clientHeight;
+      if (scrollTop > maxScrollTop) {
+        parentRef.current.scrollTop = maxScrollTop; // 强制修正滚动位置
+        console.log('======= maxScrollTop =======\n', maxScrollTop);
       }
       setVirtualRows(listArr);
     },
-    [startIndex, itemHeights, overscan, size, getEndIndex]
+    [startIndex, itemHeights, overscan, size, getEndIndex, wrapperHeight, parentRef.current]
   );
   const handleResize = () => renderList(parentRef.current.scrollTop);
 
