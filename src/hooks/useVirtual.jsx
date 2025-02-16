@@ -42,7 +42,8 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
   const wrapperHeight = useMemo(() => itemHeights.reduce((sum, height) => sum + height, 0), [itemHeights]);
   const handleScroll = useCallback(() => {
     const scrollTop = parentRef.current.scrollTop;
-    if (!(scrollTop + parentRef.current.clientHeight > wrapperHeight && lastScrollTop.current < scrollTop)) {
+    // if (!(scrollTop + parentRef.current.clientHeight > wrapperHeight && lastScrollTop.current < scrollTop)) {
+    if (scrollTop + parentRef.current.clientHeight < wrapperHeight) {
       renderList(scrollTop);
     }
     lastScrollTop.current = scrollTop;
@@ -84,21 +85,23 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
     },
     [startIndex, itemHeights, overscan, size, getEndIndex]
   );
+  const handleResize = () => renderList(parentRef.current.scrollTop);
 
   useEffect(() => {
-    const handleResize = () => renderList(parentRef.current.scrollTop);
     if (parentRef.current) {
       const scrollTop = parentRef.current.scrollTop;
       renderList(scrollTop);
       parentRef.current.addEventListener('scroll', throttleAndDebounceHandleScroll);
       parentRef.current.addEventListener('resize', handleResize);
+    } else {
+      return;
     }
     return () => {
       if (parentRef.current) {
         parentRef.current.removeEventListener('scroll', throttleAndDebounceHandleScroll);
       }
     };
-  }, [handleScroll]);
+  }, [handleScroll, parentRef.current]);
   return { totalHeight: wrapperHeight, virtualItems: virtualRows };
 };
 export default useVirtual;
