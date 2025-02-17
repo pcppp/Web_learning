@@ -75,14 +75,9 @@ const useVirtual = ({ size, parentRef, estimateSize, overscan }) => {
           listArr.push({ index: i, height: itemHeights[i], start: cumulativeIndexHeights[i] });
         }
       }
-      const maxScrollTop = wrapperHeight - parentRef.current.clientHeight;
-      if (scrollTop > maxScrollTop) {
-        parentRef.current.scrollTop = maxScrollTop; // 强制修正滚动位置
-        console.log('======= maxScrollTop =======\n', maxScrollTop);
-      }
       setVirtualRows(listArr);
     },
-    [startIndex, itemHeights, overscan, size, getEndIndex, wrapperHeight, parentRef.current]
+    [startIndex, itemHeights, overscan, size, getEndIndex]
   );
   const handleResize = () => renderList(parentRef.current.scrollTop);
 

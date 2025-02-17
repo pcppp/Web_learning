@@ -1,7 +1,4 @@
-import {
-  Tictactoe,
-  VirtualList
-} from './pages';
+import { MyUpload, Tictactoe, VirtualList } from './pages';
 
 export default [
   {
@@ -16,7 +13,10 @@ export default [
     path: '/virtualList',
     element: <VirtualList />,
   },
-
+  {
+    path: '/myUpload',
+    element: <MyUpload />,
+  },
   // {
   //   path: '*',
   //   element: <NotFound />,

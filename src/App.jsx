@@ -22,6 +22,10 @@ const links = [
     title: '虚拟列表',
     url: '/virtualList',
   },
+  {
+    title: '上传',
+    url: '/myUpload',
+  },
 ];
 
 const MyNavLink = () => {
