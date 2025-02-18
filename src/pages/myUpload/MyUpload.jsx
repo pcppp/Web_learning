@@ -1,37 +1,9 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Dropzone from 'react-dropzone';
-
+import MyDropzone from './components/MyDropzone';
 function MyUpload({ uploadFolder = true, accept = 'image/*', multiple = false }) {
-  // const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } = useMyDrop({
-  //   accept: { 'image/*': [] },
-  // });
-  const file = useRef({});
-  const style = useMemo(
-    () => ({
-      ...baseStyle,
-      // ...(isFocused ? focusedStyle : {}),
-      // ...(isDragAccept ? acceptStyle : {}),
-      // ...(isDragReject ? rejectStyle : {}),
-    })
-    // [isFocused, isDragAccept, isDragReject]
-  );
-
-  return (
-    <div className="container">
-      <div {...style}>
-        <input
-          type="file"
-          id={file}
-          multiple={multiple}
-          accept={accept}
-          webkitdirectory={uploadFolder}
-          mozdirectory={uploadFolder}
-          odirectory={uploadFolder}></input>
-        <p>Drag 'n' drop some files here, or click to select files</p>
-      </div>
-    </div>
-  );
+  return <MyDropzone></MyDropzone>;
 }
 const baseStyle = {
   flex: 1,
