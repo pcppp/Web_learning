@@ -1,7 +1,8 @@
 import { useRef, useEffect } from 'react';
-const useTree = (initialData) => {
+import useDeepEqulity from './useDeepEquality';
+const useTree = (...initialData) => {
   // 使用 useRef 保存树实例
-  const treeInstance = useRef(new Tree(initialData));
+  const treeInstance = new Tree(...initialData);
 
   // // 初始化树实例
   // if (!treeInstance.current) {
@@ -15,11 +16,12 @@ const useTree = (initialData) => {
   // }, [treeInstance.current]);
 
   // 返回树实例
-  return treeInstance.current;
+  return treeInstance;
 };
 export default useTree;
 class Tree {
-  constructor(data) {
+  constructor(data, key) {
+    this.key = key;
     this.data = data;
     this.children = [];
   }
@@ -27,21 +29,34 @@ class Tree {
     return this.children;
   }
   getChildByData(data) {
-    this.children.forEach((item) => {
-      if (item.data === data) {
-        return item;
+    let result = null;
+    this.children.forEach((child) => {
+      if (useDeepEqulity(child.data, data)) {
+        result = child;
+        return;
       }
+      // if (child.children.length) {
+      //   const result = child.children.getChildByData(data);
+      //   if (result) return result;
+      // }
     });
-    return null;
+    return result;
   }
-  insertChild(data) {
+  insertChild(data, key) {
     let child = this.getChildByData(data);
     if (child) {
       child.data = data;
+      child.key = key;
     } else {
-      child = new Tree(data);
+      child = new Tree(data, key);
       this.children.push(child);
     }
     return child;
+  }
+  deleteChild(data) {
+    let child = this.getChildByData(data);
+    this.children = this.children.filter((item) => {
+      useDeepEqulity(item.data, child.data);
+    });
   }
 }

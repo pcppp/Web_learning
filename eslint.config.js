@@ -16,7 +16,7 @@ export default [
   { ignores: ['dist'] },
   {
     files: ['**/*.{js,jsx}'],
-    env: {
+    environments: {
       browser: true,
       es2021: true,
       node: true, // 启用 Node.js 环境

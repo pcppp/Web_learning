@@ -1,36 +1,44 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Dropzone from 'react-dropzone';
 import useTree from '../../../hooks/useTree';
+import Tree from './Tree';
 function MyDropzone() {
   return <StyledDropzone />;
 }
 
 function StyledDropzone(props) {
-  const onDrop = () => {};
-
+  const onDrop = (acceptedFiles) => {
+    const filteredFiles = acceptedFiles.filter((file) => !file.name.includes('.DS_Store'));
+    const root = turnToTreeFiles(filteredFiles);
+    setTreeFiles(root);
+  };
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject, acceptedFiles } = useDropzone({
     onDrop,
-    noClick: true,
+    noClick: false,
     noKeyboard: true,
     multiple: true,
   });
-  const getTreeFiles = (files) => {
-    root.data = { path: acceptedFiles[0].path.split('/').slice(1)[0], type: 'floder' };
-    files.map((file) => {
-      const filePath = file.path.split('/').slice(2);
-      let currentPath = root;
-      filePath.forEach((pathItem) => {
-        currentPath = currentPath.insertChild({ path: currentPath + pathItem, type: 'floder' });
-      });
-      currentPath.data = file;
-    });
-    console.log(root);
+  const getPathArr = (path) => {
+    if (path[0] === '/') {
+      path = path.slice(1);
+    }
+    return path.split('/').slice(0);
   };
-  const root = useTree(null);
-  if (acceptedFiles.length) {
-    getTreeFiles(acceptedFiles);
-  }
+  const turnToTreeFiles = (files) => {
+    const root = useTree(new File([''], `./`), `.`);
+    files.map((file) => {
+      const filePath = getPathArr(file.path);
+      let currentRoot = root;
+      filePath.forEach((pathItem) => {
+        currentRoot = currentRoot.insertChild(new File([''], `${pathItem}/`), currentRoot.key + '/' + pathItem);
+      });
+      currentRoot.data = file;
+    });
+    return root;
+  };
+  const [treeFiles, setTreeFiles] = useState(null);
+
   const style = useMemo(
     () => ({
       ...baseStyle,
@@ -41,19 +49,17 @@ function StyledDropzone(props) {
     [isFocused, isDragAccept, isDragReject]
   );
 
+  function remove(data) {
+    root.deleteChild(data);
+  }
   return (
     <div className="container">
       <div {...getRootProps({ style })}>
-        <input {...getInputProps()} />
+        <input webkitdirectory={1} {...getInputProps()} />
         <p>Drag 'n' drop some files here, or click to select files</p>
-        {acceptedFiles.map((file) => {
-          return (
-            <li key={file.path}>
-              {file.path} - {file.size} bytes
-            </li>
-          );
-        })}
       </div>
+      {treeFiles && <Tree treeData={treeFiles} keyProp="key"></Tree>}
+      <input type="file" webkitdirectory="" />
     </div>
   );
 }
