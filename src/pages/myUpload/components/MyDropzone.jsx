@@ -3,6 +3,8 @@ import { useDropzone } from 'react-dropzone';
 import Dropzone from 'react-dropzone';
 import useTree from '../../../hooks/useTree';
 import Tree from './Tree';
+import http from '../../../util/http';
+import { UpLoadFiles } from '../../../request/api';
 function MyDropzone() {
   return <StyledDropzone />;
 }
@@ -12,6 +14,22 @@ function StyledDropzone(props) {
     const filteredFiles = acceptedFiles.filter((file) => !file.name.includes('.DS_Store'));
     const root = turnToTreeFiles(filteredFiles);
     setTreeFiles(root);
+    upLoad(root);
+  };
+  const upLoad = (files) => {
+    const formData = new FormData();
+
+    formData.append('files', JSON.stringify(files)); // 确保字段名是 'files'
+    http
+      .post(UpLoadFiles, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', // 你可以选择使用 multipart/form-data 或 application/json
+        },
+      })
+      .then((response) => {})
+      .catch((reason) => {
+        console.log(reason);
+      });
   };
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject, acceptedFiles } = useDropzone({
     onDrop,
@@ -26,12 +44,12 @@ function StyledDropzone(props) {
     return path.split('/').slice(0);
   };
   const turnToTreeFiles = (files) => {
-    const root = useTree(new File([''], `./`), `.`);
+    const root = useTree(new File([''], ``), ``);
     files.map((file) => {
       const filePath = getPathArr(file.path);
       let currentRoot = root;
       filePath.forEach((pathItem) => {
-        currentRoot = currentRoot.insertChild(new File([''], `${pathItem}/`), currentRoot.key + '/' + pathItem);
+        currentRoot = currentRoot.insertChild(new File([''], `${pathItem}`), currentRoot.key + '/' + pathItem);
       });
       currentRoot.data = file;
     });
@@ -59,7 +77,6 @@ function StyledDropzone(props) {
         <p>Drag 'n' drop some files here, or click to select files</p>
       </div>
       {treeFiles && <Tree treeData={treeFiles} keyProp="key"></Tree>}
-      <input type="file" webkitdirectory="" />
     </div>
   );
 }

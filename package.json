@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "ant-design": "^1.0.0",
+    "axios": "^1.7.9",
     "babel-runtime": "^6.26.0",
     "bootstrap": "^5.3.3",
     "create-react-router": "^7.1.5",
