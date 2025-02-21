@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Dropzone from 'react-dropzone';
 import useTree from '../../../hooks/useTree';
 import Tree from './Tree';
-import http from '../../../util/http';
+import http from '../../../request/http';
 import { UpLoadFiles } from '../../../request/api';
 function MyDropzone() {
   return <StyledDropzone />;
@@ -16,21 +16,58 @@ function StyledDropzone(props) {
     setTreeFiles(root);
     upLoad(root);
   };
+  const upLoadTask = useRef([]);
   const upLoad = (files) => {
-    const formData = new FormData();
-
-    formData.append('files', JSON.stringify(files)); // 确保字段名是 'files'
-    http
-      .post(UpLoadFiles, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data', // 你可以选择使用 multipart/form-data 或 application/json
-        },
-      })
-      .then((response) => {})
-      .catch((reason) => {
-        console.log(reason);
+    let task = [];
+    const creatTask = (file, parent, type, path) => {
+      const task = { id: '', file, parent, type, progress: 0, path };
+      return task;
+    };
+    const renderTreeFiles = (root) => {
+      root.children.forEach((child) => {
+        if (child.children.length) {
+          task.push(creatTask(child.data, root, 'folder', child.key));
+          renderTreeFiles(child);
+        } else {
+          task.push(creatTask(child.data, root, 'file', child.key));
+        }
       });
+    };
+    upLoadTask.current = task;
+    console.log(task);
+    renderTreeFiles(files);
+    const uploadRequests = upLoadTask.current.map((task) => {
+      const formData = new FormData();
+      formData.append('file', task.file);
+      formData.append('path', task.path);
+      formData.append('type', task.type);
+      console.log(task.path);
+      return http.post(UpLoadFiles, formData, {
+        onProgress: (event) => {
+          const loaded = Math.min(event.loaded, task.file.size);
+          const progress = Math.floor((loaded / task.file.size) * 100);
+          task.progress = progress;
+          forceUpdate(true);
+        },
+      });
+    });
+    uploadRequests
+      .reduce(async (promiseChain, currentItem) => {
+        await promiseChain;
+        return processItem(currentItem);
+      }, Promise.resolve())
+      .then(() => {
+        console.log('所有项目已处理完成');
+      });
+    // Promise.all(uploadRequests)
+    //   .then(() => {
+    //     console.log('All files uploaded successfully');
+    //   })
+    //   .catch((error) => {
+    //     console.error('Error uploading files:', error);
+    //   }); // 多文件并行上传
   };
+
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject, acceptedFiles } = useDropzone({
     onDrop,
     noClick: false,
@@ -44,7 +81,7 @@ function StyledDropzone(props) {
     return path.split('/').slice(0);
   };
   const turnToTreeFiles = (files) => {
-    const root = useTree(new File([''], ``), ``);
+    const root = useTree(new File([''], `.`), '.');
     files.map((file) => {
       const filePath = getPathArr(file.path);
       let currentRoot = root;
@@ -53,6 +90,8 @@ function StyledDropzone(props) {
       });
       currentRoot.data = file;
     });
+    console.log('======= root =======\n', root);
+
     return root;
   };
   const [treeFiles, setTreeFiles] = useState(null);

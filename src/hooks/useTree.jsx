@@ -23,15 +23,16 @@ class Tree {
   constructor(data, key) {
     this.key = key;
     this.data = data;
+    this.data.path = key;
     this.children = [];
   }
   getChildren() {
     return this.children;
   }
-  getChildByData(data) {
+  getChildByKey(key) {
     let result = null;
     this.children.forEach((child) => {
-      if (useDeepEqulity(child.data, data)) {
+      if (useDeepEqulity(child.key, key)) {
         result = child;
         return;
       }
@@ -43,7 +44,7 @@ class Tree {
     return result;
   }
   insertChild(data, key) {
-    let child = this.getChildByData(data);
+    let child = this.getChildByKey(key);
     if (child) {
       child.data = data;
       child.key = key;

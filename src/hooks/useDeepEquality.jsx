@@ -4,10 +4,11 @@ const useDeepEqulity = (obj1, obj2) => {
   };
   const key1 = Object.keys(obj1);
   const key2 = Object.keys(obj2);
-  if (key1.length != key2.length) {
-    return false;
-  }
   let result = true;
+
+  if (key1.length != key2.length) {
+    result = false;
+  }
   key1.forEach((attribute) => {
     if (detectType(obj1[attribute]) === 'object') {
       if (!useDeepEqulity(obj1[attribute], obj2[attribute])) {
@@ -21,11 +22,11 @@ const useDeepEqulity = (obj1, obj2) => {
       }
     }
   });
-  //   if (result) {
-  //     console.log('obj1==obj2', obj1, obj2);
-  //   } else {
-  //     console.log('obj1!=obj2', obj1, obj2);
-  //   }
+  // if (result) {
+  //   console.log('obj1==obj2', obj1, obj2);
+  // } else {
+  //   console.log('obj1!=obj2', obj1, obj2);
+  // }
   return result;
 };
 export default useDeepEqulity;
