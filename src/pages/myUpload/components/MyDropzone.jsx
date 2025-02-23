@@ -13,7 +13,6 @@ function MyDropzone() {
 function StyledDropzone(props) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const onDrop = (acceptedFiles) => {
-    console.log('acceptedFiles', acceptedFiles);
     const filteredFiles = acceptedFiles.filter((file) => !file.name.includes('.DS_Store'));
     const root = turnToTreeFiles(filteredFiles);
     setTreeFiles(root);
@@ -27,14 +26,16 @@ function StyledDropzone(props) {
       return task;
     };
     const renderTreeFiles = (root) => {
-      root.children.forEach((child) => {
-        if (child.children.length) {
-          task.push(creatTask(child.data, child.data.name, root, 'folder', child.key));
-          renderTreeFiles(child);
-        } else {
-          task.push(creatTask(child.data, child.data.name, root, 'file', child.key));
-        }
-      });
+      if (root) {
+        root.children.forEach((child) => {
+          if (child.children.length) {
+            task.push(creatTask(child.data, child.data.name, root, 'folder', child.key));
+            renderTreeFiles(child);
+          } else {
+            task.push(creatTask(child.data, child.data.name, root, 'file', child.key));
+          }
+        });
+      }
     };
     upLoadTask.current = task;
     renderTreeFiles(files);
@@ -86,6 +87,7 @@ function StyledDropzone(props) {
     return path.split('/').slice(0);
   };
   const turnToTreeFiles = (files) => {
+    if (files.length === 0) return null;
     const root = useTree(new File([''], `.`), '.');
     files.map((file) => {
       const filePath = getPathArr(file.path);

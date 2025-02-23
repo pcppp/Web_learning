@@ -94,9 +94,9 @@ const useMyUploadzone = ({
         } else {
           handleFiles(items);
         }
+        acceptedFiles.current = files;
+        useOnDrop(acceptedFiles.current);
       }
-      acceptedFiles.current = files;
-      useOnDrop(acceptedFiles.current);
     },
     onClick: (e) => {
       if (noClick) {
@@ -108,15 +108,15 @@ const useMyUploadzone = ({
     },
     onChange: (e) => {
       if (e.target.files.length) {
-        let { files } = e.target;
-        if (files && files.length && files[0].webkitGetAsEntry != null) {
-          _addFilesFromItems(files);
+        let currentFiles = e.target.files;
+        if (currentFiles && currentFiles.length && currentFiles[0].webkitGetAsEntry != null) {
+          _addFilesFromItems(currentFiles);
         } else {
-          handleFiles(files);
+          handleFiles(currentFiles);
         }
+        acceptedFiles.current = files;
+        useOnClick(acceptedFiles.current);
       }
-      acceptedFiles.current = files;
-      useOnClick(acceptedFiles.current);
     },
     ...props,
   });
