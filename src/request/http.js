@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const http = axios.create({
   baseURL: '/api', // 你的API地址
-  timeout: 10000, // 请求超时时间
+  timeout: 15000, // 请求超时时间
 });
 
 // // 请求拦截器

@@ -10,6 +10,7 @@ function MyDropzone() {
 }
 
 function StyledDropzone(props) {
+  const [uploadProgress, setUploadProgress] = useState(0);
   const onDrop = (acceptedFiles) => {
     const filteredFiles = acceptedFiles.filter((file) => !file.name.includes('.DS_Store'));
     const root = turnToTreeFiles(filteredFiles);
@@ -19,53 +20,54 @@ function StyledDropzone(props) {
   const upLoadTask = useRef([]);
   const upLoad = (files) => {
     let task = [];
-    const creatTask = (file, parent, type, path) => {
-      const task = { id: '', file, parent, type, progress: 0, path };
+    const creatTask = (file, name, parent, type, path) => {
+      const task = { id: '', file, name, parent, type, progress: 0, path };
       return task;
     };
     const renderTreeFiles = (root) => {
       root.children.forEach((child) => {
         if (child.children.length) {
-          task.push(creatTask(child.data, root, 'folder', child.key));
+          task.push(creatTask(child.data, child.data.name, root, 'folder', child.key));
           renderTreeFiles(child);
         } else {
-          task.push(creatTask(child.data, root, 'file', child.key));
+          task.push(creatTask(child.data, child.data.name, root, 'file', child.key));
         }
       });
     };
     upLoadTask.current = task;
-    console.log(task);
     renderTreeFiles(files);
-    const uploadRequests = upLoadTask.current.map((task) => {
+    const uploadRequests = upLoadTask.current.map((task) => () => {
+      const currentTask = task;
       const formData = new FormData();
-      formData.append('file', task.file);
-      formData.append('path', task.path);
-      formData.append('type', task.type);
-      console.log(task.path);
+      formData.append('file', currentTask.file);
+      formData.append('path', currentTask.path);
+      formData.append('type', currentTask.type);
+      formData.append('name', currentTask.name);
       return http.post(UpLoadFiles, formData, {
         onProgress: (event) => {
-          const loaded = Math.min(event.loaded, task.file.size);
-          const progress = Math.floor((loaded / task.file.size) * 100);
-          task.progress = progress;
+          const loaded = Math.min(event.loaded, currentTask.file.size);
+          const progress = Math.floor((loaded / currentTask.file.size) * 100);
+          currentTask.progress = progress;
           forceUpdate(true);
         },
       });
     });
+    let progress = 0;
+    // 顺序执行
     uploadRequests
-      .reduce(async (promiseChain, currentItem) => {
-        await promiseChain;
-        return processItem(currentItem);
+      .reduce((chain, requestFn, index) => {
+        return chain.then((prevResult) => {
+          // 如果需要使用前一个请求的结果
+          return requestFn().then((res) => {
+            progress++;
+            setUploadProgress(progress);
+          });
+        });
       }, Promise.resolve())
-      .then(() => {
-        console.log('所有项目已处理完成');
+      .then((finalResult) => {})
+      .catch((error) => {
+        console.error('上传失败:', error);
       });
-    // Promise.all(uploadRequests)
-    //   .then(() => {
-    //     console.log('All files uploaded successfully');
-    //   })
-    //   .catch((error) => {
-    //     console.error('Error uploading files:', error);
-    //   }); // 多文件并行上传
   };
 
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject, acceptedFiles } = useDropzone({
@@ -90,8 +92,6 @@ function StyledDropzone(props) {
       });
       currentRoot.data = file;
     });
-    console.log('======= root =======\n', root);
-
     return root;
   };
   const [treeFiles, setTreeFiles] = useState(null);
@@ -115,7 +115,12 @@ function StyledDropzone(props) {
         <input webkitdirectory={1} {...getInputProps()} />
         <p>Drag 'n' drop some files here, or click to select files</p>
       </div>
-      {treeFiles && <Tree treeData={treeFiles} keyProp="key"></Tree>}
+      {treeFiles && (
+        <>
+          <div>上传进度: {((parseFloat(uploadProgress) / upLoadTask.current.length) * 100).toFixed(0)} %</div>
+          <Tree treeData={treeFiles} keyProp="key"></Tree>
+        </>
+      )}
     </div>
   );
 }
