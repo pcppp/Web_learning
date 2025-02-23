@@ -69,13 +69,13 @@ function StyledDropzone(props) {
         console.error('上传失败:', error);
       });
   };
-
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject, acceptedFiles } = useDropzone({
     onDrop,
     noClick: false,
     noKeyboard: true,
     multiple: true,
   });
+
   const getPathArr = (path) => {
     if (path[0] === '/') {
       path = path.slice(1);
@@ -110,7 +110,7 @@ function StyledDropzone(props) {
     root.deleteChild(data);
   }
   return (
-    <div className="container">
+    <>
       <div {...getRootProps({ style })}>
         <input webkitdirectory={1} {...getInputProps()} />
         <p>Drag 'n' drop some files here, or click to select files</p>
@@ -121,7 +121,7 @@ function StyledDropzone(props) {
           <Tree treeData={treeFiles} keyProp="key"></Tree>
         </>
       )}
-    </div>
+    </>
   );
 }
 const baseStyle = {
