@@ -22,6 +22,9 @@ const useMyUploadzone = ({
     if (file.webkitRelativePath != '') {
       file.path = file.webkitRelativePath;
     }
+    if (file.path === undefined) {
+      file.path = file.fullPath;
+    }
     files.push(file);
   };
   const _addFilesFromDirectory = (directory, path) => {
@@ -116,6 +119,18 @@ const useMyUploadzone = ({
         }
         acceptedFiles.current = files;
         useOnClick(acceptedFiles.current);
+      }
+    },
+    onPaste: (e) => {
+      if (!noKeyboad && e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
+        let currentFiles = e.clipboardData.items;
+        if (currentFiles && currentFiles.length && currentFiles[0].webkitGetAsEntry != null) {
+          _addFilesFromItems(currentFiles);
+        } else {
+          handleFiles(currentFiles);
+        }
+        acceptedFiles.current = files;
+        useOnDrop(acceptedFiles.current);
       }
     },
     ...props,

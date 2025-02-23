@@ -76,7 +76,7 @@ function StyledDropzone(props) {
     useOnClick: onDrop,
     useOnDrop: onDrop,
     noClick: false,
-    noKeyboard: true,
+    noKeyboard: false,
     multiple: true,
   });
 
