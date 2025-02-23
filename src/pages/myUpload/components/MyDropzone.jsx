@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import useMyUploadzone from '../../../hooks/useMyuploadzone';
 import Dropzone from 'react-dropzone';
 import useTree from '../../../hooks/useTree';
 import Tree from './Tree';
@@ -70,8 +71,9 @@ function StyledDropzone(props) {
         console.error('上传失败:', error);
       });
   };
-  const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject, acceptedFiles } = useDropzone({
-    onDrop,
+  const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject, acceptedFiles } = useMyUploadzone({
+    useOnClick: onDrop,
+    useOnDrop: onDrop,
     noClick: false,
     noKeyboard: true,
     multiple: true,

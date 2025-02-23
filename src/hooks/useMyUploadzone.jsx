@@ -1,8 +1,7 @@
 import { useState, useRef } from 'react';
 const useMyUploadzone = ({
   useOnDrop = () => {},
-  useOnChange = () => {},
-  onClick = () => {},
+  useOnClick = () => {},
   noClick = false,
   noKeyboad = false,
   multiple = false,
@@ -84,7 +83,7 @@ const useMyUploadzone = ({
       addFile(files[i]);
     }
   };
-  const getRootProps = () => ({
+  const getRootProps = (props) => ({
     onDrop: (e) => {
       e.preventDefault();
       if (e.dataTransfer.files.length) {
@@ -93,12 +92,10 @@ const useMyUploadzone = ({
           // The browser supports dropping of folders, so handle items instead of files
           _addFilesFromItems(items);
         } else {
-          this.handleFiles(files);
+          handleFiles(items);
         }
       }
-
       acceptedFiles.current = files;
-      console.log('======= acceptedFiles.current =======\n', acceptedFiles.current);
       useOnDrop(acceptedFiles.current);
     },
     onClick: (e) => {
@@ -119,9 +116,9 @@ const useMyUploadzone = ({
         }
       }
       acceptedFiles.current = files;
-      console.log(acceptedFiles.current);
-      useOnChange(acceptedFiles.current);
+      useOnClick(acceptedFiles.current);
     },
+    ...props,
   });
 
   return { getRootProps, getInputProps, acceptedFiles: acceptedFiles.current };

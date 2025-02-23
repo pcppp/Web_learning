@@ -6,7 +6,7 @@ import MyUploadzone from './components/MyUploadzone';
 function MyUpload({ uploadFolder = true, accept = 'image/*', multiple = false }) {
   return (
     <>
-      <MyUploadzone></MyUploadzone>
+      {/* <MyUploadzone></MyUploadzone> */}
 
       <MyDropzone></MyDropzone>
     </>
