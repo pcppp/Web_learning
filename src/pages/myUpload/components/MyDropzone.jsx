@@ -12,6 +12,7 @@ function MyDropzone() {
 function StyledDropzone(props) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const onDrop = (acceptedFiles) => {
+    console.log('acceptedFiles', acceptedFiles);
     const filteredFiles = acceptedFiles.filter((file) => !file.name.includes('.DS_Store'));
     const root = turnToTreeFiles(filteredFiles);
     setTreeFiles(root);

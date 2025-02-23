@@ -1,11 +1,28 @@
 import { useState, useRef } from 'react';
-const useMyUploadzone = ({ useOnDrop = () => {}, noClick = false, noKeyboad = false, multiple = false }) => {
+const useMyUploadzone = ({
+  useOnDrop = () => {},
+  useOnChange = () => {},
+  onClick = () => {},
+  noClick = false,
+  noKeyboad = false,
+  multiple = false,
+}) => {
   const acceptedFiles = useRef([]);
+  const inputRef = useRef(null);
   let files = [];
-  const getInputProps = () => {};
-  const handleFiles = (files) => {};
-
+  const getInputProps = (props) => {
+    return {
+      ref: inputRef,
+      type: 'file',
+      multiple,
+      style: { overflow: 'hidden', whiteSpace: 'nowrap', width: '1px', height: '1px' },
+      ...props,
+    };
+  };
   const addFile = (file) => {
+    if (file.webkitRelativePath != '') {
+      file.path = file.webkitRelativePath;
+    }
     files.push(file);
   };
   const _addFilesFromDirectory = (directory, path) => {
@@ -62,20 +79,48 @@ const useMyUploadzone = ({ useOnDrop = () => {}, noClick = false, noKeyboad = fa
       return result;
     })();
   };
+  const handleFiles = (files) => {
+    for (let i = 0; i < files.length; i++) {
+      addFile(files[i]);
+    }
+  };
   const getRootProps = () => ({
     onDrop: (e) => {
       e.preventDefault();
-      for (let i = 0; i < e.dataTransfer.files.length; i++) {
-        files[i] = e.dataTransfer.files[i];
+      if (e.dataTransfer.files.length) {
+        let { items } = e.dataTransfer;
+        if (items && items.length && items[0].webkitGetAsEntry != null) {
+          // The browser supports dropping of folders, so handle items instead of files
+          _addFilesFromItems(items);
+        } else {
+          this.handleFiles(files);
+        }
       }
-      let { items } = e.dataTransfer;
-      if (items && items.length && items[0].webkitGetAsEntry != null) {
-        _addFilesFromItems(items);
+
+      acceptedFiles.current = files;
+      console.log('======= acceptedFiles.current =======\n', acceptedFiles.current);
+      useOnDrop(acceptedFiles.current);
+    },
+    onClick: (e) => {
+      if (noClick) {
+        e.preventDefault();
       } else {
-        handleFiles(files);
+        inputRef.current.click();
+        e.stopPropagation();
+      }
+    },
+    onChange: (e) => {
+      if (e.target.files.length) {
+        let { files } = e.target;
+        if (files && files.length && files[0].webkitGetAsEntry != null) {
+          _addFilesFromItems(files);
+        } else {
+          handleFiles(files);
+        }
       }
       acceptedFiles.current = files;
-      useOnDrop(acceptedFiles.current);
+      console.log(acceptedFiles.current);
+      useOnChange(acceptedFiles.current);
     },
   });
 
