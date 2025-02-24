@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 const useMyUploadzone = ({
   useOnDrop = () => {},
   useOnClick = () => {},
+  accept = '*',
+  sizelimit = 1024 * 1024,
   noClick = false,
   noKeyboad = false,
   multiple = false,
@@ -9,8 +11,37 @@ const useMyUploadzone = ({
   const acceptedFiles = useRef([]);
   const inputRef = useRef(null);
   let files = [];
+
+  const typeDetect = (file, accept) => {
+    const starTypeDetect = (type, fileType) => {
+      const star = type.indexOf('*');
+      if (star === 0) {
+        return true;
+      }
+      return star > -1 ? type.slice(0, star) === fileType.slice(0, star) : type === fileType;
+    };
+    let acceptType = accept.split(',');
+    let res = false;
+    acceptType.forEach((type) => {
+      if (starTypeDetect(type, file.type)) {
+        res = true;
+      }
+    });
+
+    return res;
+  };
+  const getAcceptFile = (files) => {
+    return files.filter((file) => {
+      const isValidSize = file.size <= sizelimit;
+      const isValidType = typeDetect(file, accept);
+      if (!isValidSize) console.error('文件大小超标:', file);
+      if (!isValidType) console.error('文件类型错误:', file);
+      return isValidSize && isValidType;
+    });
+  };
   const getInputProps = (props) => {
     return {
+      accept,
       ref: inputRef,
       type: 'file',
       multiple,
@@ -43,10 +74,6 @@ const useMyUploadzone = ({
               _addFilesFromDirectory(entry, `${path}/${entry.name}`);
             }
           }
-
-          // Recursively call readEntries() again, since browser only handle
-          // the first 100 entries.
-          // See: https://developer.mozilla.org/en-US/docs/Web/API/DirectoryReader#readEntries
           readEntries();
         }
         return null;
@@ -98,7 +125,7 @@ const useMyUploadzone = ({
           handleFiles(items);
         }
         acceptedFiles.current = files;
-        useOnDrop(acceptedFiles.current);
+        useOnDrop(getAcceptFile(acceptedFiles.current));
       }
     },
     onClick: (e) => {
@@ -118,7 +145,9 @@ const useMyUploadzone = ({
           handleFiles(currentFiles);
         }
         acceptedFiles.current = files;
-        useOnClick(acceptedFiles.current);
+        console.log('======= acceptedFiles.current =======\n', acceptedFiles.current);
+        console.log(getAcceptFile(acceptedFiles.current));
+        useOnClick(getAcceptFile(acceptedFiles.current));
       }
     },
     onPaste: (e) => {
@@ -130,7 +159,7 @@ const useMyUploadzone = ({
           handleFiles(currentFiles);
         }
         acceptedFiles.current = files;
-        useOnDrop(acceptedFiles.current);
+        useOnDrop(getAcceptFile(acceptedFiles.current));
       }
     },
     ...props,
