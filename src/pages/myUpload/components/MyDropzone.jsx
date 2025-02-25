@@ -13,6 +13,7 @@ function MyDropzone() {
 function StyledDropzone(props) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const onDrop = (acceptedFiles) => {
+    console.log('======= acceptedFiles =======\n', acceptedFiles);
     if (!acceptedFiles || acceptedFiles.length === 0) return;
     const filteredFiles = acceptedFiles.filter((file) => !file.name.includes('.DS_Store'));
     const root = turnToTreeFiles(filteredFiles);
@@ -129,9 +130,9 @@ function StyledDropzone(props) {
     <>
       <div {...getRootProps({ style })}>
         <input webkitdirectory={1} {...getInputProps()} />
-        {isDragAccept && isDragActive && <p>All files will be accepted</p>}
-        {!isDragAccept && isDragActive && <p>Some files will be rejected</p>}
-        {!isDragActive && <p>Drop some files here ...</p>}
+        {isDragAccept && isDragActive && <p style={{ pointerEvents: 'none' }}>All files will be accepted</p>}
+        {!isDragAccept && isDragActive && <p style={{ pointerEvents: 'none' }}>Some files will be rejected</p>}
+        {!isDragActive && <p style={{ pointerEvents: 'none' }}>Drop some files here ...</p>}
       </div>
       {treeFiles && (
         <>
@@ -148,7 +149,7 @@ const baseStyle = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  padding: '20px',
+  padding: '3px',
   borderWidth: 2,
   borderRadius: 2,
   borderColor: '#eeeeee',

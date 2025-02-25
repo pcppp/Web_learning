@@ -119,11 +119,12 @@ const useMyUploadzone = ({
     }
     files.current.push(file);
   };
-  const _addFilesFromDirectory = (directory, path) => {
-    let dirReader = directory.createReader();
+
+  const _addFilesFromDirectory = async (directory, path) => {
+    let dirReader = await directory.createReader();
     let errorHandler = (error) => __guardMethod__(console, 'log', (o) => o.log(error));
-    var readEntries = () => {
-      return dirReader.readEntries((entries) => {
+    var readEntries = async () => {
+      return await dirReader.readEntries(async (entries) => {
         if (entries.length > 0) {
           for (let entry of entries) {
             if (entry.isFile) {
@@ -132,7 +133,7 @@ const useMyUploadzone = ({
                 return addFile(file);
               });
             } else if (entry.isDirectory) {
-              _addFilesFromDirectory(entry, `${path}/${entry.name}`);
+              await _addFilesFromDirectory(entry, `${path}/${entry.name}`);
             }
           }
           readEntries();
@@ -143,8 +144,24 @@ const useMyUploadzone = ({
 
     return readEntries();
   };
-  const _addFilesFromItems = (items) => {
-    return (async () => {
+  function getFilesFromFiles(filesCurrent) {
+    return new Promise((resolve, reject) => {
+      try {
+        if (filesCurrent && filesCurrent.length && filesCurrent[0].webkitGetAsEntry != null) {
+          // 如果支持目录，则递归读取文件夹内容
+          _addFilesFromItems(filesCurrent);
+        } else {
+          // 否则处理普通文件
+          handleFiles(filesCurrent);
+        }
+      } catch (error) {
+        reject(error); // 捕获同步错误
+      }
+      resolve(files.current);
+    });
+  }
+  const _addFilesFromItems = async (items) => {
+    return await (async () => {
       let result = [];
       for (let item of items) {
         var entry;
@@ -152,7 +169,7 @@ const useMyUploadzone = ({
           if (entry.isFile) {
             result.push(addFile(item.getAsFile()));
           } else if (entry.isDirectory) {
-            result.push(_addFilesFromDirectory(entry, entry.name));
+            result.push(await _addFilesFromDirectory(entry, entry.name));
           } else {
             result.push(undefined);
           }
@@ -175,18 +192,17 @@ const useMyUploadzone = ({
     }
   };
   const getRootProps = (props) => ({
-    onDrop: async (e) => {
+    // onDropCapture: (e) => {
+    //   e.stopPropagation(); // 阻止子组件处理 drop 事件
+    // },
+    onDrop: (e) => {
       e.preventDefault();
       if (e.dataTransfer.files.length) {
-        let { items } = e.dataTransfer;
-        if (items && items.length && items[0].webkitGetAsEntry != null) {
-          await _addFilesFromItems(items);
-        } else {
-          handleFiles(items);
-        }
-        let { acceptFiles } = validateFiles(files.current);
-        upLoadDispatch({ type: 'DRAG_END' });
-        useOnDrop(acceptFiles);
+        getFilesFromFiles(e.dataTransfer.files).then((files) => {
+          let { acceptFiles } = validateFiles(files);
+          upLoadDispatch({ type: 'DRAG_END' });
+          useOnDrop(acceptFiles);
+        });
       }
     },
     onDragStart: (e) => {
@@ -223,6 +239,7 @@ const useMyUploadzone = ({
         } else {
           handleFiles(currentFiles);
         }
+        Promise.resolve();
         let { acceptFiles, errorFiles } = validateFiles(files.current);
         useOnClick(acceptFiles);
       }
