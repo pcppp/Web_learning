@@ -1,4 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useReducer } from 'react';
+import { UpLoadFiles } from '../request/api';
+import { use } from 'react';
 const useMyUploadzone = ({
   useOnDrop = () => {},
   useOnClick = () => {},
@@ -7,10 +9,46 @@ const useMyUploadzone = ({
   noClick = false,
   noKeyboad = false,
   multiple = false,
+  lengthlimit = 20,
 }) => {
-  const acceptedFiles = useRef([]);
+  const initialState = {
+    errorMessage: {},
+    acceptedFiles: [],
+    errorFiles: [],
+    isDragActive: false,
+    isDragAccept: true,
+  };
+  const upLoadReducer = (state, action) => {
+    switch (action.type) {
+      case 'ADD_ACCEPT_FILES':
+        return { ...state, acceptedFiles: [...state.acceptedFiles, ...action.files] };
+      case 'ADD_ERROR_FILES':
+        return {
+          ...state,
+          errorFiles: [...state.errorFiles, ...action.files],
+          errorMessage: { type: action.errorType, message: action.message },
+          isDragAccept: false,
+        };
+      case 'BATCH_UPDATE':
+        return {
+          ...state,
+          acceptedFiles: action.acceptedFiles,
+          errorFiles: action.errorFiles,
+          errorMessage: action.errorMessage,
+        };
+      case 'DRAG_START':
+        return { ...state, isDragActive: true };
+      case 'DRAG_END':
+        return { ...state, isDragActive: false };
+      case 'RESET':
+        return initialState;
+      default:
+        return state;
+    }
+  };
   const inputRef = useRef(null);
-  let files = [];
+  const files = useRef([]);
+  const [upLoadState, upLoadDispatch] = useReducer(upLoadReducer, initialState);
 
   const typeDetect = (file, accept) => {
     const starTypeDetect = (type, fileType) => {
@@ -18,7 +56,7 @@ const useMyUploadzone = ({
       if (star === 0) {
         return true;
       }
-      return star > -1 ? type.slice(0, star) === fileType.slice(0, star) : type === fileType;
+      return star > -1 ? type.slice(0, star + 1) === fileType.slice(0, star + 1) : type === fileType;
     };
     let acceptType = accept.split(',');
     let res = false;
@@ -27,17 +65,36 @@ const useMyUploadzone = ({
         res = true;
       }
     });
-
     return res;
   };
-  const getAcceptFile = (files) => {
-    return files.filter((file) => {
-      const isValidSize = file.size <= sizelimit;
-      const isValidType = typeDetect(file, accept);
-      if (!isValidSize) console.error('文件大小超标:', file);
-      if (!isValidType) console.error('文件类型错误:', file);
-      return isValidSize && isValidType;
-    });
+
+  const validateFiles = (files) => {
+    let acceptFiles = [];
+    let errorFiles = [];
+    if (files.length > lengthlimit) {
+      upLoadDispatch({ type: 'ADD_ERROR_FILES', files: files, errorType: 'length', message: '文件数量超标' });
+    } else {
+      files.forEach((file) => {
+        const isValidSize = file.size <= sizelimit;
+        const isValidType = typeDetect(file, accept);
+        if (!isValidSize || !isValidType) {
+          errorFiles.push(file);
+        } else {
+          acceptFiles.push(file);
+        }
+      });
+      if (errorFiles.length > 0) {
+        upLoadDispatch({
+          type: 'ADD_ERROR_FILES',
+          files: errorFiles,
+          errorType: 'size or type',
+          message: '部分文件不符合要求',
+        });
+      }
+
+      upLoadDispatch({ type: 'ADD_ACCEPT_FILES', files: acceptFiles });
+    }
+    return { acceptFiles, errorFiles };
   };
   const getInputProps = (props) => {
     return {
@@ -56,7 +113,11 @@ const useMyUploadzone = ({
     if (file.path === undefined) {
       file.path = file.fullPath;
     }
-    files.push(file);
+    if (file.path === undefined) {
+      file.path = file.name;
+      file.fullPath = file.name;
+    }
+    files.current.push(file);
   };
   const _addFilesFromDirectory = (directory, path) => {
     let dirReader = directory.createReader();
@@ -83,11 +144,11 @@ const useMyUploadzone = ({
     return readEntries();
   };
   const _addFilesFromItems = (items) => {
-    return (() => {
+    return (async () => {
       let result = [];
       for (let item of items) {
         var entry;
-        if (item.webkitGetAsEntry != null && (entry = item.webkitGetAsEntry())) {
+        if (item.webkitGetAsEntry != null && (entry = await item.webkitGetAsEntry())) {
           if (entry.isFile) {
             result.push(addFile(item.getAsFile()));
           } else if (entry.isDirectory) {
@@ -114,19 +175,37 @@ const useMyUploadzone = ({
     }
   };
   const getRootProps = (props) => ({
-    onDrop: (e) => {
+    onDrop: async (e) => {
       e.preventDefault();
       if (e.dataTransfer.files.length) {
         let { items } = e.dataTransfer;
         if (items && items.length && items[0].webkitGetAsEntry != null) {
-          // The browser supports dropping of folders, so handle items instead of files
-          _addFilesFromItems(items);
+          await _addFilesFromItems(items);
         } else {
           handleFiles(items);
         }
-        acceptedFiles.current = files;
-        useOnDrop(getAcceptFile(acceptedFiles.current));
+        let { acceptFiles } = validateFiles(files.current);
+        upLoadDispatch({ type: 'DRAG_END' });
+        useOnDrop(acceptFiles);
       }
+    },
+    onDragStart: (e) => {
+      e.preventDefault();
+    },
+    onDragOver: (e) => {
+      e.preventDefault();
+    },
+    onDragEnd: (e) => {
+      e.preventDefault();
+    },
+
+    onDragEnter: (e) => {
+      e.preventDefault();
+      upLoadDispatch({ type: 'DRAG_START' });
+    },
+    onDragLeave: (e) => {
+      e.preventDefault();
+      upLoadDispatch({ type: 'DRAG_END' });
     },
     onClick: (e) => {
       if (noClick) {
@@ -144,10 +223,8 @@ const useMyUploadzone = ({
         } else {
           handleFiles(currentFiles);
         }
-        acceptedFiles.current = files;
-        console.log('======= acceptedFiles.current =======\n', acceptedFiles.current);
-        console.log(getAcceptFile(acceptedFiles.current));
-        useOnClick(getAcceptFile(acceptedFiles.current));
+        let { acceptFiles, errorFiles } = validateFiles(files.current);
+        useOnClick(acceptFiles);
       }
     },
     onPaste: (e) => {
@@ -158,14 +235,17 @@ const useMyUploadzone = ({
         } else {
           handleFiles(currentFiles);
         }
-        acceptedFiles.current = files;
-        useOnDrop(getAcceptFile(acceptedFiles.current));
+        let { acceptFiles } = validateFiles(files.current);
+        useOnDrop(acceptFiles);
       }
     },
     ...props,
   });
-
-  return { getRootProps, getInputProps, acceptedFiles: acceptedFiles.current };
+  return {
+    ...upLoadState,
+    getRootProps,
+    getInputProps,
+  };
 };
 
 export default useMyUploadzone;

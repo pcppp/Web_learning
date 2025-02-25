@@ -20,10 +20,11 @@ const useTree = (...initialData) => {
 };
 export default useTree;
 class Tree {
-  constructor(data, key) {
+  constructor(data, key, name) {
     this.key = key;
     this.data = data;
     this.data.path = key;
+    this.name = name;
     this.children = [];
   }
   getChildren() {
@@ -43,13 +44,13 @@ class Tree {
     });
     return result;
   }
-  insertChild(data, key) {
+  insertChild(data, key, name) {
     let child = this.getChildByKey(key);
     if (child) {
       child.data = data;
       child.key = key;
     } else {
-      child = new Tree(data, key);
+      child = new Tree(data, key, name);
       this.children.push(child);
     }
     return child;

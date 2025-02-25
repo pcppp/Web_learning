@@ -1,10 +1,10 @@
-const Tree = ({ treeData, keyProp }) => {
+const Tree = ({ treeData, keyProp, displayProp }) => {
   let treeList = [];
   let relevantHeight = 0;
   const renderLineData = (data, keyProp, style) => {
     return (
       <div key={data[keyProp]} style={style}>
-        {data[keyProp]}
+        {data[displayProp]}
       </div>
     );
   };

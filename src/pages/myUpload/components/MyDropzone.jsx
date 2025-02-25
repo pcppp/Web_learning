@@ -13,7 +13,7 @@ function MyDropzone() {
 function StyledDropzone(props) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const onDrop = (acceptedFiles) => {
-    console.log('======= acceptedFiles =======\n', acceptedFiles);
+    if (!acceptedFiles || acceptedFiles.length === 0) return;
     const filteredFiles = acceptedFiles.filter((file) => !file.name.includes('.DS_Store'));
     const root = turnToTreeFiles(filteredFiles);
     setTreeFiles(root);
@@ -73,28 +73,38 @@ function StyledDropzone(props) {
         console.error('上传失败:', error);
       });
   };
-  const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject, acceptedFiles } = useMyUploadzone({
-    useOnClick: onDrop,
-    useOnDrop: onDrop,
-    noClick: false,
-    noKeyboard: false,
-    multiple: true,
-  });
+  const { errorFiles, errorMessage, getRootProps, getInputProps, isDragActive, isDragAccept, acceptedFiles } =
+    useMyUploadzone({
+      useOnClick: onDrop,
+      useOnDrop: onDrop,
+      noClick: false,
+      noKeyboard: false,
+      multiple: true,
+      accept: '*',
+      lengthlimit: 20,
+    });
 
   const getPathArr = (path) => {
-    if (path[0] === '/') {
-      path = path.slice(1);
+    if (path && path.length > 0) {
+      if (path[0] === '/') {
+        path = path.slice(1);
+      }
+      return path.split('/').slice(0);
     }
-    return path.split('/').slice(0);
+    console.log(path);
   };
   const turnToTreeFiles = (files) => {
     if (files.length === 0) return null;
-    const root = useTree(new File([''], `.`), '.');
+    const root = useTree(new File([''], `.`), '.', '');
     files.map((file) => {
       const filePath = getPathArr(file.path);
       let currentRoot = root;
       filePath.forEach((pathItem) => {
-        currentRoot = currentRoot.insertChild(new File([''], `${pathItem}`), currentRoot.key + '/' + pathItem);
+        currentRoot = currentRoot.insertChild(
+          new File([''], `${pathItem}`),
+          currentRoot.key + '/' + pathItem,
+          pathItem
+        );
       });
       currentRoot.data = file;
     });
@@ -105,11 +115,11 @@ function StyledDropzone(props) {
   const style = useMemo(
     () => ({
       ...baseStyle,
-      ...(isFocused ? focusedStyle : {}),
-      ...(isDragAccept ? acceptStyle : {}),
-      ...(isDragReject ? rejectStyle : {}),
+      ...(isDragActive ? focusedStyle : {}),
+      ...(isDragAccept && isDragActive ? acceptStyle : {}),
+      ...(!isDragAccept && isDragActive ? rejectStyle : {}),
     }),
-    [isFocused, isDragAccept, isDragReject]
+    [isDragAccept, isDragActive]
   );
 
   function remove(data) {
@@ -119,12 +129,15 @@ function StyledDropzone(props) {
     <>
       <div {...getRootProps({ style })}>
         <input webkitdirectory={1} {...getInputProps()} />
-        <p>Drag 'n' drop some files here, or click to select files</p>
+        {isDragAccept && isDragActive && <p>All files will be accepted</p>}
+        {!isDragAccept && isDragActive && <p>Some files will be rejected</p>}
+        {!isDragActive && <p>Drop some files here ...</p>}
       </div>
       {treeFiles && (
         <>
           <div>上传进度: {((parseFloat(uploadProgress) / upLoadTask.current.length) * 100).toFixed(0)} %</div>
-          <Tree treeData={treeFiles} keyProp="key"></Tree>
+          <div>{errorMessage && <div>{errorMessage.message}</div>}</div>
+          <Tree treeData={treeFiles} keyProp="key" displayProp="name"></Tree>
         </>
       )}
     </>
