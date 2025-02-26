@@ -6,6 +6,7 @@ import useTree from '../../../hooks/useTree';
 import Tree from './Tree';
 import http from '../../../request/http';
 import { UpLoadFiles } from '../../../request/api';
+import useSliceFile from '../../../hooks/useSliceFile';
 function MyDropzone() {
   return <StyledDropzone />;
 }
@@ -19,7 +20,7 @@ function StyledDropzone(props) {
     const filteredFiles = acceptedFiles.filter((file) => !file.name.includes('.DS_Store'));
     renderDrop(filteredFiles);
   };
-  const upLoadTask = useRef([]);
+  const upLoadTaskList = useRef([]);
   const renderDrop = (files) => {
     const root = turnToTreeFiles(files);
     setTreeFiles(root);
@@ -44,25 +45,32 @@ function StyledDropzone(props) {
       }
     };
     renderTreeFiles(treeFiles);
-    upLoadTask.current = task;
-    return upLoadTask.current;
+    upLoadTaskList.current = task;
+    return upLoadTaskList.current;
   };
-  const upLoad = (task) => {
+  const upLoadFile = (formData) => {
+    return http.post(UpLoadFiles, formData, {
+      onProgress: (event) => {
+        const loaded = Math.min(event.loaded, currentTask.file.size);
+        const progress = Math.floor((loaded / currentTask.file.size) * 100);
+        currentTask.progress = progress;
+        forceUpdate(true);
+      },
+    });
+  };
+  const upLoadTask = (task) => {
     const uploadRequests = task.map((task) => () => {
       const currentTask = task;
       const formData = new FormData();
+      const maxSize = 1024 * 1024;
       formData.append('file', currentTask.file);
       formData.append('path', currentTask.path);
       formData.append('type', currentTask.type);
       formData.append('name', currentTask.name);
-      return http.post(UpLoadFiles, formData, {
-        onProgress: (event) => {
-          const loaded = Math.min(event.loaded, currentTask.file.size);
-          const progress = Math.floor((loaded / currentTask.file.size) * 100);
-          currentTask.progress = progress;
-          forceUpdate(true);
-        },
-      });
+      if (currentTask.file.size > maxSize) {
+        return useSliceFile(formData, maxSize);
+      }
+      return upLoadFile(formData);
     });
     let progress = 0;
     // 顺序执行
@@ -132,22 +140,23 @@ function StyledDropzone(props) {
     root.deleteChild(data);
   }
   const handleUpload = () => {
-    if (!upLoadTask.current.length) {
+    if (!upLoadTaskList.current.length) {
       console.log('空文件');
       return;
     }
-    upLoad(upLoadTask.current);
+    upLoadTask(upLoadTaskList.current);
   };
   const handlePause = () => {
     uploadProgress;
   };
   const handlePauseOrCancle = () => {
-    if (upLoadTask.current.length) {
+    if (upLoadTaskList.current.length) {
       renderDrop([]);
     } else {
       handlePause();
     }
   };
+
   return (
     <>
       <button onClick={handleUpload}>点击上传</button>
@@ -160,7 +169,7 @@ function StyledDropzone(props) {
       </div>
       {treeFiles && (
         <>
-          <div>上传进度: {((parseFloat(uploadProgress) / upLoadTask.current.length) * 100).toFixed(0)} %</div>
+          <div>上传进度: {((parseFloat(uploadProgress) / upLoadTaskList.current.length) * 100).toFixed(0)} %</div>
           <div>{errorMessage && <div>{errorMessage.message}</div>}</div>
           <Tree treeData={treeFiles} keyProp="key" displayProp="name"></Tree>
         </>
