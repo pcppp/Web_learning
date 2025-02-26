@@ -12,15 +12,20 @@ function MyDropzone() {
 
 function StyledDropzone(props) {
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [treeFiles, setTreeFiles] = useState(null);
+
   const onDrop = (acceptedFiles) => {
     if (!acceptedFiles || acceptedFiles.length === 0) return;
     const filteredFiles = acceptedFiles.filter((file) => !file.name.includes('.DS_Store'));
-    const root = turnToTreeFiles(filteredFiles);
-    setTreeFiles(root);
-    upLoad(root);
+    renderDrop(filteredFiles);
   };
   const upLoadTask = useRef([]);
-  const upLoad = (files) => {
+  const renderDrop = (files) => {
+    const root = turnToTreeFiles(files);
+    setTreeFiles(root);
+    setUploadTask(root);
+  };
+  const setUploadTask = (treeFiles) => {
     let task = [];
     const creatTask = (file, name, parent, type, path) => {
       const task = { id: '', file, name, parent, type, progress: 0, path };
@@ -38,9 +43,12 @@ function StyledDropzone(props) {
         });
       }
     };
+    renderTreeFiles(treeFiles);
     upLoadTask.current = task;
-    renderTreeFiles(files);
-    const uploadRequests = upLoadTask.current.map((task) => () => {
+    return upLoadTask.current;
+  };
+  const upLoad = (task) => {
+    const uploadRequests = task.map((task) => () => {
       const currentTask = task;
       const formData = new FormData();
       formData.append('file', currentTask.file);
@@ -61,7 +69,6 @@ function StyledDropzone(props) {
     uploadRequests
       .reduce((chain, requestFn, index) => {
         return chain.then((prevResult) => {
-          // 如果需要使用前一个请求的结果
           return requestFn().then((res) => {
             progress++;
             setUploadProgress(progress);
@@ -94,7 +101,7 @@ function StyledDropzone(props) {
     console.log(path);
   };
   const turnToTreeFiles = (files) => {
-    if (files.length === 0) return null;
+    if (!files || files.length === 0) return null;
     const root = useTree(new File([''], `.`), '.', '');
     files.map((file) => {
       const filePath = getPathArr(file.path);
@@ -110,7 +117,6 @@ function StyledDropzone(props) {
     });
     return root;
   };
-  const [treeFiles, setTreeFiles] = useState(null);
 
   const style = useMemo(
     () => ({
@@ -125,8 +131,27 @@ function StyledDropzone(props) {
   function remove(data) {
     root.deleteChild(data);
   }
+  const handleUpload = () => {
+    if (!upLoadTask.current.length) {
+      console.log('空文件');
+      return;
+    }
+    upLoad(upLoadTask.current);
+  };
+  const handlePause = () => {
+    uploadProgress;
+  };
+  const handlePauseOrCancle = () => {
+    if (upLoadTask.current.length) {
+      renderDrop([]);
+    } else {
+      handlePause();
+    }
+  };
   return (
     <>
+      <button onClick={handleUpload}>点击上传</button>
+      <button onClick={handlePauseOrCancle}>暂停/取消</button>
       <div {...getRootProps({ style })}>
         <input webkitdirectory={1} {...getInputProps()} />
         {isDragAccept && isDragActive && <p style={{ pointerEvents: 'none' }}>All files will be accepted</p>}

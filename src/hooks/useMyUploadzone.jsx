@@ -99,19 +99,16 @@ const useMyUploadzone = ({
     return new Promise((resolve, reject) => {
       try {
         const items = event.dataTransfer.items;
-
         // 0. 检查 items 是否存在
         if (!items || items.length === 0) {
           reject(new Error('拖拽内容为空'));
           return;
         }
-
         // 1. 遍历所有 items
         const filePromises = Array.from(items).map((item) => {
           if (item.webkitGetAsEntry) {
             // 支持目录解析（Chrome/Firefox）
             const entry = item.webkitGetAsEntry();
-
             // 2. 递归处理文件和文件夹
             return new Promise((resolveEntry) => {
               const files = [];
@@ -223,22 +220,6 @@ const useMyUploadzone = ({
 
     return await readEntries();
   };
-
-  function getFilesFromItems(items) {
-    return new Promise((resolve, reject) => {
-      try {
-        if (items && items.length && items[0].webkitGetAsEntry != null) {
-          // 如果支持目录，则递归读取文件夹内容
-        } else {
-          // 否则处理普通文件
-          handleFiles(items);
-        }
-      } catch (error) {
-        reject(error); // 捕获同步错误
-      }
-      resolve(files.current);
-    });
-  }
   const _addFilesFromItems = async (items) => {
     let result = [];
     for (let item of items) {
@@ -270,14 +251,10 @@ const useMyUploadzone = ({
     }
   };
   const getRootProps = (props) => ({
-    // onDropCapture: (e) => {
-    //   e.stopPropagation(); // 阻止子组件处理 drop 事件
-    // },
     onDrop: (e) => {
       e.preventDefault();
       if (e.dataTransfer.files.length) {
         getFilesFromDataTransferItems(e).then((files) => {
-          console.log('======= files =======\n', files);
           let { acceptFiles } = validateFiles(files);
           upLoadDispatch({ type: 'DRAG_END' });
           useOnDrop(acceptFiles);
