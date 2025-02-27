@@ -1,14 +1,15 @@
 import http from '../request/http';
 import { MergeChunks } from '../request/api';
-export default function useSliceFile({ formData = new FormData(), SIZE = 1024 * 1024 }) {
-  const file = formData.get('file');
+import { useRef } from 'react';
+export default function useSliceFile({ SIZE = 1024 * 1024 } = { SIZE: 1024 * 1024 }) {
+  const hashRef = useRef(null);
   // 生成文件切片
-  const createFileChunks = (file, chunkSize) => {
+  const createFileChunks = (file) => {
     const chunks = [];
     let cur = 0;
     while (cur < file.size) {
-      chunks.push(file.slice(cur, cur + chunkSize));
-      cur += chunkSize;
+      chunks.push(file.slice(cur, cur + SIZE));
+      cur += SIZE;
     }
     return chunks;
   };
@@ -19,63 +20,93 @@ export default function useSliceFile({ formData = new FormData(), SIZE = 1024 * 
       worker.postMessage({ chunks });
       worker.onmessage = (e) => {
         const { percentage, hash } = e.data;
-        console.log('生成 hash 的进度：', percentage);
+        // console.log('生成 hash 的进度：', percentage);
         if (hash) {
+          hashRef.current = hash;
           resolve(hash);
         }
       };
     });
   };
-  const handleChangeFile = async () => {
+  const handleChangeFile = async (file, formData) => {
     if (file && file.size > 0) {
       // 1、对大文件拆分切片
-      const chunks = createFileChunks(file);
+      const chunks = createFileChunks(file, SIZE);
       // 2、根据切片，生成文件总的 hash（文件唯一标识（根据文件内容生成的 hash））
       const hash = await calculateHash(chunks);
-      const fileForm = chunks.map((chunk, index) => {
-        formData.delete('file');
-        formData.append('file', { fileName: file.name, chunk, hash, hashIndex: `${hash}-${index}`, ...file });
-        return formData;
+      const upLoadChunks = chunks.map((chunk, index) => {
+        return {
+          fileName: file.name,
+          chunk: chunk,
+          size: SIZE,
+          hash,
+          hashIndex: `${hash}-${index}`,
+        };
+      });
+      const fileForm = upLoadChunks.map((chunk, index) => {
+        const formDataCurrent = new FormData();
+        formData.forEach((value, key) => {
+          if (key !== 'file') {
+            formDataCurrent.append(key, value);
+          }
+        });
+        formDataCurrent.append('file', chunk.chunk);
+        formDataCurrent.append('type', 'fileSlice');
+        formDataCurrent.append('hashIndex', chunk.hashIndex);
+        formDataCurrent.append('hash', chunk.hash);
+        return formDataCurrent;
       });
       return fileForm;
     } else {
       console.log('文件为空');
     }
   };
-  const mergeChunks = async () => {
+  const mergeChunks = async ({ file }) => {
+    console.log(hashRef.current);
     await http.post(
       MergeChunks,
       JSON.stringify({
-        fileName: uploadFile.current.file.name,
-        fileHash: uploadFile.current.hash,
+        fileName: file.name,
+        fileHash: hashRef.current,
         chunkSize: SIZE, // 切片大小
-      }),
-      { 'content-type': 'application/json' }
+      })
     );
   };
-  const startUploadRequest = async (file, max = 5, uploadReq = () => {}) => {
-    const fileForm = await handleChangeFile(file);
+  const startUploadRequest = async ({ max = 5, uploadReq = () => {}, formData }) => {
+    const fileForm = await handleChangeFile(formData.get('file'), formData);
     return new Promise((resovle) => {
-      const total = chunks.length; // 请求总数量
+      const total = fileForm.length; // 请求总数量
       let count = 0; // 记录请求完成的数量
       let index = 0; // 发起请求的数量
       const start = () => {
-        while (index <= total && max > 0) {
+        while (index < total && max > 0) {
+          uploadReq(fileForm[index])
+            .then(() => {
+              count++;
+              max++;
+              if (count === total) {
+                resovle();
+              } else {
+                start();
+              }
+            })
+            .catch((error) => {
+              // console.log(error);
+            });
           index++;
-          uploadReq(fileForm[index]).then(() => {
-            count++;
-            max++;
-            if (count === total) {
-              resovle();
-            } else {
-              start();
-            }
-          });
         }
       };
+      start();
+    });
+  };
+  const upLoadSliceFile = async ({ max = 5, uploadReq = () => {}, formData = new FormData() }) => {
+    return new Promise(async (resovle) => {
+      await startUploadRequest({ max, uploadReq, formData });
+      await mergeChunks({ file: formData.get('file') });
+      resovle(res);
     });
   };
   return {
-    startUploadRequest,
+    upLoadSliceFile,
   };
 }

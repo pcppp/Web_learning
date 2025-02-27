@@ -6,3 +6,9 @@ export function upLoadFiles(files) {
     .then()
     .catch(() => {});
 }
+export function mergeChunks(files) {
+  http
+    .post(UpLoadFiles, files, '')
+    .then()
+    .catch(() => {});
+}

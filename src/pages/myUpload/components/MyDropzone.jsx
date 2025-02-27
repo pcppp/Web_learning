@@ -14,9 +14,11 @@ function MyDropzone() {
 function StyledDropzone(props) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [treeFiles, setTreeFiles] = useState(null);
+  const { upLoadSliceFile } = useSliceFile();
 
   const onDrop = (acceptedFiles) => {
     if (!acceptedFiles || acceptedFiles.length === 0) return;
+    setUploadProgress(0);
     const filteredFiles = acceptedFiles.filter((file) => !file.name.includes('.DS_Store'));
     renderDrop(filteredFiles);
   };
@@ -50,16 +52,13 @@ function StyledDropzone(props) {
   };
   const upLoadFile = (formData) => {
     return http.post(UpLoadFiles, formData, {
-      onProgress: (event) => {
-        const loaded = Math.min(event.loaded, currentTask.file.size);
-        const progress = Math.floor((loaded / currentTask.file.size) * 100);
-        currentTask.progress = progress;
-        forceUpdate(true);
+      headers: {
+        'Content-Type': 'multipart/form-data',
       },
     });
   };
-  const upLoadTask = (task) => {
-    const uploadRequests = task.map((task) => () => {
+  const upLoadTask = async (task) => {
+    const uploadRequests = await task.map((task) => async () => {
       const currentTask = task;
       const formData = new FormData();
       const maxSize = 1024 * 1024;
@@ -68,9 +67,9 @@ function StyledDropzone(props) {
       formData.append('type', currentTask.type);
       formData.append('name', currentTask.name);
       if (currentTask.file.size > maxSize) {
-        return useSliceFile(formData, maxSize);
+        return await upLoadSliceFile({ max: 5, uploadReq: upLoadFile, formData });
       }
-      return upLoadFile(formData);
+      // return upLoadFile(formData);
     });
     let progress = 0;
     // 顺序执行
@@ -97,6 +96,7 @@ function StyledDropzone(props) {
       multiple: true,
       accept: '*',
       lengthlimit: 20,
+      sizelimit: 1024 * 1024 * 1024,
     });
 
   const getPathArr = (path) => {
@@ -161,6 +161,8 @@ function StyledDropzone(props) {
     <>
       <button onClick={handleUpload}>点击上传</button>
       <button onClick={handlePauseOrCancle}>暂停/取消</button>
+      <div>{errorMessage && <div>{errorMessage.message}</div>}</div>
+
       <div {...getRootProps({ style })}>
         <input webkitdirectory={1} {...getInputProps()} />
         {isDragAccept && isDragActive && <p style={{ pointerEvents: 'none' }}>All files will be accepted</p>}
@@ -170,7 +172,6 @@ function StyledDropzone(props) {
       {treeFiles && (
         <>
           <div>上传进度: {((parseFloat(uploadProgress) / upLoadTaskList.current.length) * 100).toFixed(0)} %</div>
-          <div>{errorMessage && <div>{errorMessage.message}</div>}</div>
           <Tree treeData={treeFiles} keyProp="key" displayProp="name"></Tree>
         </>
       )}
