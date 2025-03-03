@@ -2,11 +2,18 @@ import axios from 'axios';
 
 const http = axios.create({
   baseURL: '/api', // 你的API地址
-  timeout: 15000, // 请求超时时间
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 600000, // 请求超时时间
 });
+http.useAbortRequest = (mode, abortRef) => {
+  const controller = new AbortController();
+  const signal = controller.signal;
+  abortRef && (abortRef.current = () => controller.abort());
+  return (url, config = {}) => {
+    if (mode === 'post') return http[mode](url, config.data, { ...config, signal });
+    else return http[mode](url, { ...config, signal });
+  };
+};
+export default http;
 
 // // 请求拦截器
 // http.interceptors.request.use(
@@ -41,5 +48,3 @@ const http = axios.create({
 //     return Promise.reject(error);
 //   }
 // );
-
-export default http;

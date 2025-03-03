@@ -3,6 +3,7 @@ import { MergeChunks } from '../request/api';
 import { useRef } from 'react';
 export default function useSliceFile({ SIZE = 1024 * 1024 } = { SIZE: 1024 * 1024 }) {
   const hashRef = useRef(null);
+  const sliceFileprogress = useRef(0);
   // 生成文件切片
   const createFileChunks = (file) => {
     const chunks = [];
@@ -20,7 +21,6 @@ export default function useSliceFile({ SIZE = 1024 * 1024 } = { SIZE: 1024 * 102
       worker.postMessage({ chunks });
       worker.onmessage = (e) => {
         const { percentage, hash } = e.data;
-        // console.log('生成 hash 的进度：', percentage);
         if (hash) {
           hashRef.current = hash;
           resolve(hash);
@@ -62,15 +62,12 @@ export default function useSliceFile({ SIZE = 1024 * 1024 } = { SIZE: 1024 * 102
     }
   };
   const mergeChunks = async ({ file }) => {
-    console.log(hashRef.current);
-    await http.post(
-      MergeChunks,
-      JSON.stringify({
-        fileName: file.name,
-        fileHash: hashRef.current,
-        chunkSize: SIZE, // 切片大小
-      })
-    );
+    let res = await http.post(MergeChunks, {
+      fileName: file.name,
+      fileHash: hashRef.current,
+      chunkSize: SIZE, // 切片大小
+    });
+    return res;
   };
   const startUploadRequest = async ({ max = 5, uploadReq = () => {}, formData }) => {
     const fileForm = await handleChangeFile(formData.get('file'), formData);
@@ -78,10 +75,11 @@ export default function useSliceFile({ SIZE = 1024 * 1024 } = { SIZE: 1024 * 102
       const total = fileForm.length; // 请求总数量
       let count = 0; // 记录请求完成的数量
       let index = 0; // 发起请求的数量
+      max = Math.min(total, max);
       const start = () => {
         while (index < total && max > 0) {
           uploadReq(fileForm[index])
-            .then(() => {
+            .then((res) => {
               count++;
               max++;
               if (count === total) {
@@ -102,7 +100,8 @@ export default function useSliceFile({ SIZE = 1024 * 1024 } = { SIZE: 1024 * 102
   const upLoadSliceFile = async ({ max = 5, uploadReq = () => {}, formData = new FormData() }) => {
     return new Promise(async (resovle) => {
       await startUploadRequest({ max, uploadReq, formData });
-      await mergeChunks({ file: formData.get('file') });
+      let res = await mergeChunks({ file: formData.get('file') });
+      console.log('mergeChunks');
       resovle(res);
     });
   };

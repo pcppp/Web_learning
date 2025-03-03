@@ -21,7 +21,10 @@ const useMyUploadzone = ({
   const upLoadReducer = (state, action) => {
     switch (action.type) {
       case 'ADD_ACCEPT_FILES':
-        return { ...state, acceptedFiles: [...state.acceptedFiles, ...action.files] };
+        return {
+          ...state,
+          acceptedFiles: [...state.acceptedFiles, ...action.files],
+        };
       case 'ADD_ERROR_FILES':
         return {
           ...state,
