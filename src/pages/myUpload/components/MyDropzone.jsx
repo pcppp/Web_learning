@@ -7,7 +7,6 @@ import Tree from './Tree';
 import http from '../../../request/http';
 import { UpLoadFiles } from '../../../request/api';
 import useSliceFile from '../../../hooks/useSliceFile';
-import { data } from 'react-router';
 function MyDropzone() {
   return <StyledDropzone />;
 }
@@ -16,8 +15,8 @@ function StyledDropzone(props) {
   const [uploadedSize, setUploadedSize] = useState(0);
   const [totalSize, setTotalSize] = useState(0);
   const [treeFiles, setTreeFiles] = useState(null);
-  const { upLoadSliceFile } = useSliceFile({ SIZE: 1024 * 1024 * 40 });
-  const aboutRef = useRef(null);
+  const { upLoadSliceFile } = useSliceFile({ SIZE: 1024 * 256 });
+  const abortControllers = useRef([]);
   const upLoadTaskList = useRef([]);
   const uploadedRef = useRef(0);
 
@@ -25,7 +24,7 @@ function StyledDropzone(props) {
     setUploadedSize(0);
     setTotalSize(0);
     setTreeFiles(null);
-    aboutRef.current = null;
+    abortControllers.current = [];
     upLoadTaskList.current = [];
     uploadedRef.current = 0;
   };
@@ -69,17 +68,28 @@ function StyledDropzone(props) {
   };
 
   const upLoadFile = (formData) => {
+    const controller = new AbortController(); // 为每个请求创建新控制器
+    abortControllers.current.push(controller);
     const progressCb = (progressSize) => {
       uploadedRef.current += progressSize;
       setUploadedSize(uploadedRef.current);
     };
-    const requestPost = http.useAbortRequest('post', aboutRef);
-    return requestPost(UpLoadFiles, {
-      data: formData,
-    }).then((res) => {
-      console.log(res);
-      progressCb(res.data.file.size);
+    return http
+      .post(UpLoadFiles, formData, {
+        signal: controller.signal,
+        headers: { 'Content-Type': 'multipart/form-data', accept: '*' },
+      })
+      .then((res) => {
+        progressCb(res.data.file.size);
+        abortControllers.current = abortControllers.current.filter((c) => c !== controller);
+      });
+  };
+  const abortAllRequests = () => {
+    abortControllers.current.forEach((controller) => {
+      console.log('中断');
+      controller.abort(); // 终止所有进行中的请求
     });
+    abortControllers.current = []; // 清空控制器数组
   };
   const upLoadTask = async (task) => {
     const uploadRequests = await task.map((task) => async () => {
@@ -166,13 +176,13 @@ function StyledDropzone(props) {
     upLoadTask(upLoadTaskList.current);
   };
   const handlePause = () => {
-    aboutRef.current && aboutRef.current();
+    abortAllRequests();
   };
   const handlePauseOrCancle = () => {
     if (upLoadTaskList.current.length) {
-      renderDrop([]);
-    } else {
       handlePause();
+    } else {
+      renderDrop([]);
     }
   };
 

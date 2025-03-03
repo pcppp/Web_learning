@@ -3,7 +3,6 @@ import { MergeChunks } from '../request/api';
 import { useRef } from 'react';
 export default function useSliceFile({ SIZE = 1024 * 1024 } = { SIZE: 1024 * 1024 }) {
   const hashRef = useRef(null);
-  const sliceFileprogress = useRef(0);
   // 生成文件切片
   const createFileChunks = (file) => {
     const chunks = [];
