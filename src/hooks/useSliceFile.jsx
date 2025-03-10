@@ -100,7 +100,6 @@ export default function useSliceFile({ SIZE = 1024 * 1024 } = { SIZE: 1024 * 102
     return new Promise(async (resovle) => {
       await startUploadRequest({ max, uploadReq, formData });
       let res = await mergeChunks({ file: formData.get('file') });
-      console.log('mergeChunks');
       resovle(res);
     });
   };

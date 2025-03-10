@@ -26,6 +26,10 @@ const links = [
     title: '上传',
     url: '/myUpload',
   },
+  {
+    title: '长轮询',
+    url: '/websocket',
+  },
 ];
 
 const MyNavLink = () => {

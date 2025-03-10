@@ -19,7 +19,7 @@ function StyledDropzone(props) {
   const abortControllers = useRef([]);
   const upLoadTaskList = useRef([]);
   const uploadedRef = useRef(0);
-
+  const uploadRequests = useRef([]);
   const initPage = () => {
     setUploadedSize(0);
     setTotalSize(0);
@@ -27,6 +27,7 @@ function StyledDropzone(props) {
     abortControllers.current = [];
     upLoadTaskList.current = [];
     uploadedRef.current = 0;
+    uploadRequests.current = [];
   };
   const onDrop = (acceptedFiles) => {
     if (!acceptedFiles || acceptedFiles.length === 0) return;
@@ -86,13 +87,12 @@ function StyledDropzone(props) {
   };
   const abortAllRequests = () => {
     abortControllers.current.forEach((controller) => {
-      console.log('中断');
       controller.abort(); // 终止所有进行中的请求
     });
     abortControllers.current = []; // 清空控制器数组
   };
   const upLoadTask = async (task) => {
-    const uploadRequests = await task.map((task) => async () => {
+    uploadRequests.current = await task.map((task) => async () => {
       const currentTask = task;
       const formData = new FormData();
       const maxSize = 1024 * 1024;
@@ -110,7 +110,7 @@ function StyledDropzone(props) {
       return upLoadFile(formData);
     });
     // 顺序执行
-    uploadRequests.reduce((chain, requestFn, index) => {
+    uploadRequests.current.reduce((chain, requestFn, index) => {
       return chain.then((prevResult) => {
         return requestFn();
       });
