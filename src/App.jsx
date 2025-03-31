@@ -27,8 +27,12 @@ const links = [
     url: '/myUpload',
   },
   {
-    title: '长轮询',
+    title: 'websocket',
     url: '/websocket',
+  },
+  {
+    title: '状态托管',
+    url: '/stateColocation',
   },
 ];
 

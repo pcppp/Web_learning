@@ -1,4 +1,4 @@
-import { MyUpload, Tictactoe, VirtualList, Websocket } from './pages';
+import { MyUpload, Tictactoe, VirtualList, Websocket, StateColocation } from './pages';
 
 export default [
   {
@@ -16,6 +16,10 @@ export default [
   {
     path: '/myUpload',
     element: <MyUpload />,
+  },
+  {
+    path: '/stateColocation',
+    element: <StateColocation />,
   },
   {
     path: '/websocket',
