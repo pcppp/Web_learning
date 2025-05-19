@@ -9,6 +9,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import tailwindcss from '@tailwindcss/vite';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -17,6 +18,12 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'), // 将 @ 映射到 src 目录
     },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {},
+    },
+  },
+
   server: {
     proxy: {
       '/api': {

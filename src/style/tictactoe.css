@@ -3,15 +3,14 @@
  * @version: 
  * @Author: pc
  * @Date: 2024-10-11 17:04:55
- * @LastEditors: your name
- * @LastEditTime: 2024-10-11 17:06:15
+ * @LastEditors: 彭畅 1326278155@qq.com
+ * @LastEditTime: 2025-05-19 15:31:15
  */
 * {
   box-sizing: border-box;
 }
 
 body {
-  font-family: sans-serif;
   margin: 20px;
   padding: 0;
 }
@@ -59,7 +58,6 @@ ul {
 }
 
 body {
-  font-family: sans-serif;
   margin: 20px;
   padding: 0;
 }

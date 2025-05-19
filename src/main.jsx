@@ -6,18 +6,16 @@
  * @LastEditors: your name
  * @LastEditTime: 2024-10-12 10:24:32
  */
-import React from "react";
-import ReactDOM from "react-dom/client";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
-import "./style/index.css";
-import App from "./App";
-
-const root = ReactDOM.createRoot(document.getElementById("root"));
+import App from './App';
+import './style/global.scss';
+const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-    <App />
-
+      <App />
     </BrowserRouter>
   </React.StrictMode>
 );

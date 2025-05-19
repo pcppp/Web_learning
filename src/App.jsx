@@ -10,46 +10,10 @@ import { Suspense } from 'react';
 import './style/App.css';
 import routers from '@/router';
 import { NavLink, useRoutes } from 'react-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import Loading from '@/components/Loading';
-const links = [
-  {
-    title: '井字棋',
-    url: '/tictactoe',
-  },
-  {
-    title: '虚拟列表',
-    url: '/virtualList',
-  },
-  {
-    title: '上传',
-    url: '/myUpload',
-  },
-  {
-    title: 'websocket',
-    url: '/websocket',
-  },
-  {
-    title: '状态托管',
-    url: '/stateColocation',
-  },
-];
-
-const MyNavLink = () => {
-  return (
-    <ul>
-      {links.map((link) => {
-        return (
-          <li key={link.url}>
-            <NavLink to={link.url}>{link.title}</NavLink>
-          </li>
-        );
-      })}
-    </ul>
-  );
-};
-
+import useTopic from '@/hooks/useTopic';
 const ErrorFallback = ({ error, resetErrorBoundary }) => {
   return (
     <div role="alert">
@@ -61,17 +25,15 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
 };
 export default function MyApp() {
   const elements = useRoutes(routers);
-  const [pointNum, setPointNum] = useState(0);
-  const handleClick = () => {
-    setPointNum(pointNum + 1);
-  };
+  const { topic, TOPIC, dispatchTopic, SelectComponent } = useTopic();
+
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
       onReset={() => {
         window.location.href = '/';
       }}>
-      <MyNavLink></MyNavLink>
+      <SelectComponent></SelectComponent>
       <Suspense fallback={<Loading />}>{elements}</Suspense>
     </ErrorBoundary>
   );
