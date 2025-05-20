@@ -26,25 +26,6 @@ const links = [
 export default function MyNavLink() {
   return (
     <>
-      <a className="nes-btn" href="#">
-        Normal
-      </a>
-      <button type="button" className="nes-btn is-primary">
-        Primary
-      </button>
-      <button type="button" className="nes-btn is-success">
-        Success
-      </button>
-      <button type="button" className="nes-btn is-warning">
-        Warning
-      </button>
-      <button type="button" className="nes-btn is-error">
-        Error
-      </button>
-      <button type="button" className="">
-        Disabled
-      </button>
-
       <ul className="text-3xl">
         {links.map((link) => {
           return (

@@ -25,7 +25,7 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
 };
 export default function MyApp() {
   const elements = useRoutes(routers);
-  const { topic, TOPIC, dispatchTopic, SelectComponent } = useTopic();
+  // const { topic, TOPIC, dispatchTopic, SelectComponent } = useTopic();
 
   return (
     <ErrorBoundary
@@ -33,7 +33,6 @@ export default function MyApp() {
       onReset={() => {
         window.location.href = '/';
       }}>
-      <SelectComponent></SelectComponent>
       <Suspense fallback={<Loading />}>{elements}</Suspense>
     </ErrorBoundary>
   );
