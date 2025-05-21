@@ -7,6 +7,7 @@ import Tree from './Tree';
 import http from '../../../request/http';
 import { UpLoadFiles } from '../../../request/api';
 import useSliceFile from '../../../hooks/useSliceFile';
+import { ButtonPro } from '@/components/ButtonPro';
 function MyDropzone() {
   return <StyledDropzone />;
 }
@@ -188,8 +189,8 @@ function StyledDropzone(props) {
 
   return (
     <>
-      <button onClick={handleUpload}>点击上传</button>
-      <button onClick={handlePauseOrCancle}>暂停/取消</button>
+      <ButtonPro onClick={handleUpload}>点击上传</ButtonPro>
+      <ButtonPro onClick={handlePauseOrCancle}>暂停/取消</ButtonPro>
       <div>{errorMessage && <div>{errorMessage.message}</div>}</div>
 
       <div {...getRootProps({ style })}>

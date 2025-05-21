@@ -12,8 +12,8 @@ function App() {
   return (
     <div>
       <p>Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>Increase Count</button>
-      <button onClick={() => handleInputChange('  Hello World  ')}>Change Input</button>
+      <ButtonPro onClick={() => setCount(count + 1)}>Increase Count</ButtonPro>
+      <ButtonPro onClick={() => handleInputChange('  Hello World  ')}>Change Input</ButtonPro>
     </div>
   );
 }

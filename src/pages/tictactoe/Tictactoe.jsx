@@ -8,7 +8,8 @@
  */
 import { useState } from 'react';
 import Board from './components/Board';
-export default function Tictactoe() {
+import { ButtonPro } from '@/components/ButtonPro';
+export default function TicTacToe() {
   const [history, setHistory] = useState([Array(9).fill(null)]); //#####包含了1个长度为9的数组的数组
   const [currentMove, setCurrentMove] = useState(0);
   const xIsNext = currentMove % 2 === 0;
@@ -30,7 +31,7 @@ export default function Tictactoe() {
     }
     return (
       <li key={move}>
-        <button onClick={() => jumpTo(move)}>{description}</button>
+        <ButtonPro onClick={() => jumpTo(move)}>{description}</ButtonPro>
       </li>
     );
   });

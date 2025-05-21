@@ -8,7 +8,6 @@
  */
 import '@/style/tictactoe.css';
 import { useState } from 'react';
-
 function Square({ value, onClick }) {
   return (
     <button className="square" onClick={onClick}>

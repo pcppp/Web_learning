@@ -1,1 +1,8 @@
 @import 'tailwindcss';
+html,
+body,
+#root {
+  @apply h-full min-h-screen w-full;
+  margin: 0;
+  padding: 0;
+}

@@ -20,5 +20,5 @@ export default function Websocket() {
       console.log('WebSocket connection closed.');
     });
   };
-  return <button onClick={startWebsocket}>启动Websocket</button>;
+  return <ButtonPro onClick={startWebsocket}>启动Websocket</ButtonPro>;
 }

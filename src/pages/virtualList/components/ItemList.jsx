@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import { ButtonPro } from '@/components/ButtonPro';
+
 const getItemStyle = ({ height, start }) => {
   return {
     position: 'absolute',
@@ -38,23 +40,7 @@ const ItemList = ({ listRef, items, virtualRows, totalHeight }) => {
             overscrollBehavior: 'none',
           }}>
           <li style={{ height: totalHeight, visibility: 'hidden' }}></li>
-          {/* {items.map((item, index) => (
-            <li key={index} style={{ marginBottom: '10px' }}>
-              {item}
-              <button
-                onClick={() => removeItem(index)}
-                style={{
-                  marginLeft: '10px',
-                  backgroundColor: 'red',
-                  color: 'white',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '5px 10px',
-                }}>
-                删除
-              </button>
-            </li>
-          ))} */}
+
           {virtualRows.map(({ index, height, start }) => {
             const item = items[index];
             return (
@@ -78,7 +64,7 @@ const ItemList = ({ listRef, items, virtualRows, totalHeight }) => {
             width: '200px',
           }}
         />
-        <button
+        <ButtonPro
           onClick={addItem}
           style={{
             padding: '5px 15px',
@@ -88,7 +74,7 @@ const ItemList = ({ listRef, items, virtualRows, totalHeight }) => {
             cursor: 'pointer',
           }}>
           添加
-        </button>
+        </ButtonPro>
       </div>
     </>
   );
