@@ -14,7 +14,6 @@ const ItemList = ({ listRef, items, virtualRows, totalHeight }) => {
   // 定义初始状态：列表项和当前输入值
   return (
     <>
-      <h2>水果列表</h2>
       <div>
         <ul
           ref={listRef}

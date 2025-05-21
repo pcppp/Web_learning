@@ -44,7 +44,7 @@ export default function MyNavLink() {
           <Outlet />
         </div>
         <div
-          className={`absolute inset-0 z-10 min-h-screen bg-amber-500 pt-15 pr-60 pl-60 transition-transform duration-1000 ease-in-out ${isMovedDown ? 'translate-y-[100vh]' : 'translate-y-0'} `}>
+          className={`absolute inset-0 z-10 min-h-screen bg-amber-500 pt-15 pr-60 pl-60 transition-transform duration-500 ease-in-out ${isMovedDown ? 'translate-y-[100vh]' : 'translate-y-0'} `}>
           {/* 操作框 */}
           <div
             className={`fixed top-[-15px] left-0 z-10 h-[30px] w-full rounded-t-2xl bg-amber-700 hover:bg-amber-800`}
