@@ -38,12 +38,16 @@ export default function TicTacToe() {
 
   return (
     <>
-      <div className="game">
-        <div className="game-board">
-          <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay}></Board>
-        </div>
-        <div className="game-info">
-          <ol>{moves}</ol>
+      {/* 游戏标题 */}
+      <div className="flex min-h-screen flex-col items-center p-4 md:p-8">
+        <h1 className="mb-6 text-center text-3xl font-bold text-amber-800">井字棋游戏</h1>
+        <div className="game flex w-full max-w-3xl flex-col gap-8 md:flex-row md:justify-center">
+          <div className="game-board h-60 rounded-lg p-6 shadow-md">
+            <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay}></Board>
+          </div>
+          <div className="game-info w-full max-w-xs rounded-lg p-6 text-center text-sm text-amber-700 md:w-64">
+            <ol>{moves}</ol>
+          </div>
         </div>
       </div>
     </>

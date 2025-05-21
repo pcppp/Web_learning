@@ -60,18 +60,15 @@ export default function MyNavLink() {
           <div className={`text-1xl grid grid-cols-2 gap-8 font-semibold sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5`}>
             {links.map((link) => {
               return (
-                <>
-                  <NavLink key={link.url} to={link.url} className={'w-full'}>
-                    <ButtonPro
-                      className={`h-full w-full ${currentTag === link.title ? 'outline-2' : ''}`}
-                      onClick={(e) => {
-                        handleDivClick(e);
-                      }}>
-                      {' '}
-                      {link.title}
-                    </ButtonPro>
-                  </NavLink>
-                </>
+                <NavLink key={link.url} to={link.url} className={'w-full'}>
+                  <ButtonPro
+                    className={`h-full w-full ${currentTag === link.title ? 'outline-2' : ''}`}
+                    onClick={(e) => {
+                      handleDivClick(e);
+                    }}>
+                    {link.title}
+                  </ButtonPro>
+                </NavLink>
               );
             })}
           </div>

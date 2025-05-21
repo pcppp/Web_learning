@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { ButtonPro } from '@/components/ButtonPro';
 
 const getItemStyle = ({ height, start }) => {
   return {
@@ -13,18 +12,6 @@ const getItemStyle = ({ height, start }) => {
 };
 const ItemList = ({ listRef, items, virtualRows, totalHeight }) => {
   // 定义初始状态：列表项和当前输入值
-  const [inputValue, setInputValue] = useState('');
-  // 添加新项
-  const addItem = () => {
-    if (inputValue.trim()) {
-      setItems([...items, inputValue]);
-      setInputValue(''); // 清空输入框
-    }
-  };
-  // 删除某一项
-  const removeItem = (index) => {
-    setItems(items.filter((_, i) => i !== index));
-  };
   return (
     <>
       <h2>水果列表</h2>
@@ -50,31 +37,6 @@ const ItemList = ({ listRef, items, virtualRows, totalHeight }) => {
             );
           })}
         </ul>
-      </div>
-      <div style={{ marginTop: '20px' }}>
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="请输入新项目"
-          style={{
-            padding: '5px',
-            fontSize: '16px',
-            marginRight: '10px',
-            width: '200px',
-          }}
-        />
-        <ButtonPro
-          onClick={addItem}
-          style={{
-            padding: '5px 15px',
-            backgroundColor: 'green',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer',
-          }}>
-          添加
-        </ButtonPro>
       </div>
     </>
   );
