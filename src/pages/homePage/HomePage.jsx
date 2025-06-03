@@ -2,28 +2,8 @@ import { NavLink, useRoutes, Outlet } from 'react-router';
 import { useState } from 'react';
 import routers from '@/router';
 import { ButtonPro } from '../../components/ButtonPro';
-const links = [
-  {
-    title: '井字棋',
-    url: '/tictactoe',
-  },
-  {
-    title: '虚拟列表',
-    url: '/virtualList',
-  },
-  {
-    title: '上传',
-    url: '/myUpload',
-  },
-  {
-    title: 'websocket',
-    url: '/websocket',
-  },
-  {
-    title: '状态托管',
-    url: '/stateColocation',
-  },
-];
+import { getNavLink } from '../../router';
+const links = getNavLink();
 
 export default function MyNavLink() {
   const [isMovedDown, setIsMovedDown] = useState(false);
@@ -57,10 +37,11 @@ export default function MyNavLink() {
             <div className="mx-auto h-1 w-24 rounded-full bg-white opacity-50"></div>
           </div>
           {/* 列表List */}
-          <div className={`text-1xl grid grid-cols-2 gap-8 font-semibold sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5`}>
+          <div
+            className={`text-1xl grid grid-cols-2 gap-8 font-semibold sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`}>
             {links.map((link) => {
               return (
-                <NavLink key={link.url} to={link.url} className={'w-full'}>
+                <NavLink key={link.path} to={link.path} className={'w-full'}>
                   <ButtonPro
                     className={`h-full w-full ${currentTag === link.title ? 'outline-2' : ''}`}
                     onClick={(e) => {

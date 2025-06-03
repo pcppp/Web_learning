@@ -12,7 +12,7 @@ const useMyUploadzone = ({
   lengthlimit = 20,
 }) => {
   const initialState = {
-    errorMessage: {},
+    errorMessage: { type: '', message: '' },
     acceptedFiles: [],
     errorFiles: [],
     isDragActive: false,
@@ -257,11 +257,22 @@ const useMyUploadzone = ({
     onDrop: (e) => {
       e.preventDefault();
       if (e.dataTransfer.files.length) {
-        getFilesFromDataTransferItems(e).then((files) => {
-          let { acceptFiles } = validateFiles(files);
-          upLoadDispatch({ type: 'DRAG_END' });
-          useOnDrop(acceptFiles);
-        });
+        getFilesFromDataTransferItems(e)
+          .then((files) => {
+            let { acceptFiles } = validateFiles(files);
+            upLoadDispatch({ type: 'DRAG_END' });
+            useOnDrop(acceptFiles);
+          })
+          .catch((error) => {
+            // 处理文件读取错误
+            upLoadDispatch({
+              type: 'ADD_ERROR_FILES',
+              files: [],
+              errorType: 'read',
+              message: `读取文件失败: ${error.message}`,
+            });
+            upLoadDispatch({ type: 'DRAG_END' });
+          });
       }
     },
     onDragStart: (e) => {
@@ -292,6 +303,8 @@ const useMyUploadzone = ({
     },
     onChange: (e) => {
       if (e.target.files.length) {
+        files.current = []; // 重置文件列表，避免累积
+
         let currentFiles = e.target.files;
         if (currentFiles && currentFiles.length && currentFiles[0].webkitGetAsEntry != null) {
           _addFilesFromItems(currentFiles);

@@ -12,7 +12,6 @@ const Tree = ({ treeData, keyProp, displayProp }) => {
     treeData.forEach((child) => {
       treeList.push(
         renderLineData(child, keyProp, {
-          width: '100%',
           fontSize: '16px',
           left: level * 30 + 'px',
           top: relevantHeight + 'px',

@@ -22,8 +22,8 @@ export default function VirtualList() {
       <div>
         <ItemSetter itemDispatch={setItems}></ItemSetter>
       </div>
-      <div className="p-5 shadow-md">
-        {items.length > 0 && (
+      {items.length > 0 && (
+        <div className="p-5 shadow-md">
           <div>
             <ItemList
               listRef={listRef}
@@ -31,8 +31,8 @@ export default function VirtualList() {
               virtualRows={virtualizer.virtualItems}
               totalHeight={virtualizer.totalHeight}></ItemList>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

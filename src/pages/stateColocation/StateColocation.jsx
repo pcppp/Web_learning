@@ -1,4 +1,5 @@
 import React from 'react';
+import { InputPro } from '../../components/inputPro';
 function sleep(time) {
   const done = Date.now() + time;
   while (done > Date.now()) {
@@ -12,7 +13,7 @@ function SlowComponent({ time, onChange }) {
   sleep(time);
   return (
     <div>
-      Wow, that was <input value={time} type="number" onChange={(e) => onChange(Number(e.target.value))} />
+      Wow, that was <InputPro value={time} type="number" onChange={(e) => onChange(Number(e.target.value))} />
       ms slow
     </div>
   );
@@ -23,7 +24,7 @@ function DogName({ time, dog, onChange }) {
     <div>
       <label htmlFor="dog">Dog Name</label>
       <br />
-      <input id="dog" value={dog} onChange={(e) => onChange(e.target.value)} />
+      <InputPro id="dog" value={dog} onChange={(e) => onChange(e.target.value)} />
       <p>{dog ? `${dog}'s favorite number is ${time}.` : 'enter a dog name'}</p>
     </div>
   );
@@ -34,7 +35,7 @@ function DogName2({ time }) {
     <div>
       <label htmlFor="dog">Dog Name</label>
       <br />
-      <input id="dog" value={dog} onChange={(e) => setDog(e.target.value)} />
+      <InputPro id="dog" value={dog} onChange={(e) => setDog(e.target.value)} />
       <p>{dog ? `${dog}'s favorite number is ${time}.` : 'enter a dog name'}</p>
     </div>
   );
