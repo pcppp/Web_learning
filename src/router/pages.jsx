@@ -6,4 +6,5 @@ const MyUpload = lazy(() => import('@/pages/myUpload/MyUpload.jsx'));
 const WebsocketDemo = lazy(() => import('@/pages/websocketDemo/WebsocketDemo.jsx'));
 const StateColocation = lazy(() => import('@/pages/stateColocation/StateColocation.jsx'));
 const MyNavLink = lazy(() => import('@/pages/homePage/HomePage.jsx'));
-export { MyNavLink, TicTacToe, VirtualList, MyUpload, WebsocketDemo, StateColocation };
+const Chess = lazy(() => import('@/pages/chess/Chess.jsx'));
+export { Chess, MyNavLink, TicTacToe, VirtualList, MyUpload, WebsocketDemo, StateColocation };

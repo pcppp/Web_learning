@@ -1,4 +1,4 @@
-import { MyNavLink, MyUpload, TicTacToe, VirtualList, WebsocketDemo, StateColocation } from './pages';
+import { Chess, MyNavLink, MyUpload, TicTacToe, VirtualList, WebsocketDemo, StateColocation } from './pages';
 
 const NavLink = [
   {
@@ -6,6 +6,7 @@ const NavLink = [
     path: 'ticTacToe',
     element: <TicTacToe />,
   },
+
   {
     title: '虚拟列表',
     path: 'virtualList',
@@ -25,6 +26,11 @@ const NavLink = [
     title: '状态托管',
     path: 'stateColocation',
     element: <StateColocation />,
+  },
+  {
+    title: '象棋',
+    path: 'chess',
+    element: <Chess />,
   },
 ];
 export default [
