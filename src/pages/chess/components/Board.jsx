@@ -2,10 +2,27 @@ import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 const ChessContainer = styled.div``;
 const ChessPiece = styled.div`
-  border: ${(props) => (props.$isSelected ? '4px solid black' : 'none')}; /* 添加黑色边框 */
-  background: ${(props) => (props.$player == 1 ? 'red' : 'blue')}; /* 添加黑色边框 */
   border-radius: 50%;
-  transition: border 0.1s ease;
+  background: radial-gradient(circle at 30% 30%, #fff, #f0f0f0);
+  box-shadow:
+    inset 0 0 5px rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.15);
+  border: 2px solid ${(props) => (props.$player === 1 ? 'red' : 'blue')};
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'STKaiti', 'KaiTi', 'SimKai', serif;
+  font-size: 30px;
+  font-weight: bold;
+  color: ${(props) => (props.$player === 1 ? 'red' : 'blue')};
+  position: relative;
+  transition: all 0.2s ease;
+
+  ${(props) =>
+    props.$isSelected &&
+    `
+    box-shadow: 0 0 0 3px black, inset 0 0 5px rgba(0,0,0,0.2);
+  `}
 `;
 const GridContainer = styled.div`
   position: relative;
@@ -51,64 +68,6 @@ const getChessNameFromType = (type) => {
       return '卒';
   }
 };
-const initChessPieceList = () => {
-  const chessPieceList = Array(10)
-    .fill(null)
-    .map(() => Array(9).fill({}));
-  // 设置棋子的初始位置
-  const redPositions = [
-    { row: 0, col: 0, type: ju }, // 车
-    { row: 0, col: 1, type: ma }, // 马
-    { row: 0, col: 2, type: xiang }, // 象
-    { row: 0, col: 3, type: shi }, // 士
-    { row: 0, col: 4, type: jiang }, // 将
-    { row: 0, col: 5, type: shi }, // 士
-    { row: 0, col: 6, type: xiang }, // 象
-    { row: 0, col: 7, type: ma }, // 马
-    { row: 0, col: 8, type: ju }, // 车
-    { row: 2, col: 1, type: pao }, // 炮
-    { row: 2, col: 7, type: pao }, // 炮
-    { row: 3, col: 0, type: zu }, // 卒
-    { row: 3, col: 2, type: zu }, // 卒
-    { row: 3, col: 4, type: zu }, // 卒
-    { row: 3, col: 6, type: zu }, // 卒
-    { row: 3, col: 8, type: zu }, // 卒
-  ];
-  // 黑方棋子的初始位置
-  const blackPositions = [
-    { row: 9, col: 0, type: ju }, // 车
-    { row: 9, col: 1, type: ma }, // 马
-    { row: 9, col: 2, type: xiang }, // 象
-    { row: 9, col: 3, type: shi }, // 士
-    { row: 9, col: 4, type: jiang }, // 将
-    { row: 9, col: 5, type: shi }, // 士
-    { row: 9, col: 6, type: xiang }, // 象
-    { row: 9, col: 7, type: ma }, // 马
-    { row: 9, col: 8, type: ju }, // 车
-    { row: 7, col: 1, type: pao }, // 炮
-    { row: 7, col: 7, type: pao }, // 炮
-    { row: 6, col: 0, type: zu }, // 卒
-    { row: 6, col: 2, type: zu }, // 卒
-    { row: 6, col: 4, type: zu }, // 卒
-    { row: 6, col: 6, type: zu }, // 卒
-    { row: 6, col: 8, type: zu }, // 卒
-  ];
-  chessPieceList.forEach((rows, rowIndex) => {
-    rows.forEach((item, colIndex) => {
-      item.row = rowIndex;
-      item.col = colIndex;
-      item.type = kong;
-    });
-  });
-  // 将棋子放置到棋盘上
-  redPositions.forEach(({ row, col, type }) => {
-    chessPieceList[row][col] = { row, col, type, player: 1 };
-  });
-  blackPositions.forEach(({ row, col, type }) => {
-    chessPieceList[row][col] = { row, col, type, player: 2 };
-  });
-  return chessPieceList;
-};
 
 const Grid = ({ chessPiece, isSelected, onClick, showDot }) => {
   return (
@@ -131,16 +90,10 @@ const Grid = ({ chessPiece, isSelected, onClick, showDot }) => {
 const getIndexFromRowCol = ({ row, col }) => {
   return row * 9 + col;
 };
-const Board = ({ player, setPlayer }) => {
-  const [chessPieceList, setChessPieceList] = useState(initChessPieceList());
+const Board = ({ player, chessPieceList, socket, handleMoveChessPiece }) => {
   const [dotsIndex, setDotsIndex] = useState(new Set());
   const [selectedIndex, setSelectedIndex] = useState(null);
-  const [successFlag, setSuccessFlag] = useState(false);
-  // const [player, setPlayer] = useState(1);
-  const playerRotation = () => {
-    if (player === 1) setPlayer(2);
-    else setPlayer(1);
-  };
+  const socketCurrent = socket.current;
   const handleDotsIndex = ({ chessPiece }) => {
     const dotsIndex = new Set();
     const directions = [
@@ -307,49 +260,16 @@ const Board = ({ player, setPlayer }) => {
     }
     setDotsIndex(dotsIndex);
   };
-  const handleSuccessJudgment = ({ chessPiece }) => {
-    if (chessPiece.type === jiang) {
-      setSuccessFlag(true);
-      return true;
-    }
-    return false;
-  };
-  const handleMoveChessPiece = ({ index, chessPiece }) => {
-    const newRow = Math.floor(index / 9);
-    const oldRow = Math.floor(selectedIndex / 9);
-    const newCol = index % 9;
-    const oldCol = selectedIndex % 9;
-    const oldChessPiece = chessPieceList[oldRow][oldCol];
-    const newChessPieceList = chessPieceList.map((row) => [...row]);
-    newChessPieceList[newRow][newCol] = {
-      row: newRow,
-      col: newCol,
-      type: oldChessPiece.type,
-      player: oldChessPiece.player,
-    };
-    newChessPieceList[oldRow][oldCol] = { type: kong };
-    setChessPieceList(newChessPieceList);
-    if (handleSuccessJudgment({ chessPiece })) {
-      return;
-    }
-    playerRotation();
-  };
+
   const onGridClick = ({ chessPiece, index }) => {
     const type = chessPiece.type;
     const isOpposite = chessPiece.player && chessPiece.player !== player;
     if (dotsIndex.has(index)) {
-      if (type === kong) {
-        handleMoveChessPiece({ chessPiece, index });
-        setDotsIndex(new Set());
-        setSelectedIndex(null);
-        return;
-      }
-      if (isOpposite) {
-        handleMoveChessPiece({ chessPiece, index });
-        setDotsIndex(new Set());
-        setSelectedIndex(null);
-        return;
-      }
+      handleMoveChessPiece({ from: parseInt(selectedIndex), to: parseInt(index) });
+      setDotsIndex(new Set());
+      setSelectedIndex(null);
+      socketCurrent.send(JSON.stringify({ type: 'move', from: parseInt(selectedIndex), to: parseInt(index) }));
+      return;
     }
     if (isOpposite) {
       return;
