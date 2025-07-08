@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+const ChessContainer = styled.div``;
 const ChessPiece = styled.div`
-  background: red;
   border: ${(props) => (props.$isSelected ? '4px solid black' : 'none')}; /* 添加黑色边框 */
+  background: ${(props) => (props.$player == 1 ? 'red' : 'blue')}; /* 添加黑色边框 */
   border-radius: 50%;
   transition: border 0.1s ease;
 `;
@@ -32,10 +33,28 @@ const jiang = 4; // 将
 const shi = 5; // 士
 const xiang = 6; // 象
 const zu = 7; // 卒
+const getChessNameFromType = (type) => {
+  switch (type) {
+    case 1:
+      return '马';
+    case 2:
+      return '车';
+    case 3:
+      return '炮';
+    case 4:
+      return '将';
+    case 5:
+      return '士';
+    case 6:
+      return '象';
+    case 7:
+      return '卒';
+  }
+};
 const initChessPieceList = () => {
   const chessPieceList = Array(10)
     .fill(null)
-    .map(() => Array(9).fill({ type: kong }));
+    .map(() => Array(9).fill({}));
   // 设置棋子的初始位置
   const redPositions = [
     { row: 0, col: 0, type: ju }, // 车
@@ -74,7 +93,13 @@ const initChessPieceList = () => {
     { row: 6, col: 6, type: zu }, // 卒
     { row: 6, col: 8, type: zu }, // 卒
   ];
-
+  chessPieceList.forEach((rows, rowIndex) => {
+    rows.forEach((item, colIndex) => {
+      item.row = rowIndex;
+      item.col = colIndex;
+      item.type = kong;
+    });
+  });
   // 将棋子放置到棋盘上
   redPositions.forEach(({ row, col, type }) => {
     chessPieceList[row][col] = { row, col, type, player: 1 };
@@ -82,41 +107,61 @@ const initChessPieceList = () => {
   blackPositions.forEach(({ row, col, type }) => {
     chessPieceList[row][col] = { row, col, type, player: 2 };
   });
-
   return chessPieceList;
-};
-const getTypeFromIndex = (index) => {
-  return;
 };
 
 const Grid = ({ chessPiece, isSelected, onClick, showDot }) => {
   return (
     <GridContainer $showDot={showDot} onClick={onClick}>
       {chessPiece.type === kong ? (
-        <div className="h-15 w-15"></div>
+        <ChessContainer className="h-25 w-25"></ChessContainer>
       ) : (
-        <ChessPiece $isSelected={isSelected} className="h-15 w-15 rounded-full">
-          {chessPiece.type}
-        </ChessPiece>
+        <ChessContainer className="flex h-25 w-25 flex-col items-center justify-center">
+          <ChessPiece
+            $isSelected={isSelected}
+            $player={chessPiece.player}
+            className="flex h-20 w-20 flex-col items-center justify-center rounded-full text-[30px]">
+            <div>{getChessNameFromType(chessPiece.type)}</div>
+          </ChessPiece>
+        </ChessContainer>
       )}
     </GridContainer>
   );
 };
-const chessPieceClick = ({ chessPiece }) => {};
 const getIndexFromRowCol = ({ row, col }) => {
   return row * 9 + col;
 };
-const Board = () => {
+const Board = ({ player, setPlayer }) => {
   const [chessPieceList, setChessPieceList] = useState(initChessPieceList());
   const [dotsIndex, setDotsIndex] = useState(new Set());
   const [selectedIndex, setSelectedIndex] = useState(null);
-  const getPossibilityLocation = ({ chessPiece }) => {
+  const [successFlag, setSuccessFlag] = useState(false);
+  // const [player, setPlayer] = useState(1);
+  const playerRotation = () => {
+    if (player === 1) setPlayer(2);
+    else setPlayer(1);
+  };
+  const handleDotsIndex = ({ chessPiece }) => {
     const dotsIndex = new Set();
+    const directions = [
+      [1, 0], // 向下
+      [-1, 0], // 向上
+      [0, 1], // 向右
+      [0, -1], // 向左
+    ];
     const { row, col } = chessPiece;
     const verifiedAdd = (row, col) => {
-      if (row < 10 && col < 9 && row >= 0 && col >= 0) {
+      if (verify(row, col)) {
         dotsIndex.add(row * 9 + col);
+        return true;
       }
+      return false;
+    };
+    const verify = (row, col) => {
+      if (row < 10 && col < 9 && row >= 0 && col >= 0) {
+        return true;
+      }
+      return false;
     };
     const type = chessPiece.type;
     switch (type) {
@@ -148,28 +193,97 @@ const Board = () => {
         break;
       case 2:
         // 车
-        for (let i = 0; i < 10; i++) {
-          verifiedAdd(row + i, col);
-          verifiedAdd(row - i, col);
-          verifiedAdd(row, col + i);
-          verifiedAdd(row, col - i);
-        }
+        directions.forEach(([rowIncrement, colIncrement]) => {
+          for (let i = 1; i < 10; i++) {
+            const newRow = row + i * rowIncrement;
+            const newCol = col + i * colIncrement;
+            // 边界检查
+            if (!verify(newRow, newCol)) break;
+
+            // 如果遇到棋子
+            if (chessPieceList[newRow][newCol].type !== kong) {
+              // 如果是敌方棋子，可以吃掉
+              if (chessPieceList[newRow][newCol].player !== player) {
+                verifiedAdd(newRow, newCol);
+              }
+              break; // 遇到棋子后停止
+            }
+            // 如果是空格，添加到可移动位置
+            verifiedAdd(newRow, newCol);
+          }
+        });
         break;
       case 3:
-        // 炮
-        for (let i = 0; i < 10; i++) {
-          verifiedAdd(row + i, col);
-          verifiedAdd(row - i, col);
-          verifiedAdd(row, col + i);
-          verifiedAdd(row, col - i);
-        }
+        directions.forEach(([rowIncrement, colIncrement]) => {
+          let hasJumped = false; // 标记是否已经越过一个棋子
+
+          for (let i = 1; i < 10; i++) {
+            const newRow = row + i * rowIncrement;
+            const newCol = col + i * colIncrement;
+
+            // 边界检查
+            if (newRow < 0 || newRow >= 10 || newCol < 0 || newCol >= 9) break;
+
+            const targetPiece = chessPieceList[newRow][newCol];
+
+            if (targetPiece.type !== kong) {
+              if (!hasJumped) {
+                // 第一次遇到棋子，标记为已越过
+                hasJumped = true;
+              } else {
+                // 第二次遇到棋子，检查是否是敌方棋子
+                if (targetPiece.player !== player) {
+                  verifiedAdd(newRow, newCol); // 可以吃掉敌方棋子
+                }
+                break; // 无论是否吃子，炮的路径到此结束
+              }
+            } else {
+              // 如果是空格
+              if (!hasJumped) {
+                verifiedAdd(newRow, newCol); // 只有在未越过棋子的情况下才能移动到空格
+              }
+            }
+          }
+        });
         break;
       case 4:
         // 将
-        verifiedAdd(row + 1, col);
-        verifiedAdd(row - 1, col);
-        verifiedAdd(row, col + 1);
-        verifiedAdd(row, col - 1);
+        const palaceBounds =
+          player === 1
+            ? { rowMin: 0, rowMax: 2, colMin: 3, colMax: 5 } // 红方九宫格
+            : { rowMin: 7, rowMax: 9, colMin: 3, colMax: 5 }; // 黑方九宫格
+
+        const verifiedAddInPalace = (row, col) => {
+          // 检查是否在九宫格内
+          if (
+            row >= palaceBounds.rowMin &&
+            row <= palaceBounds.rowMax &&
+            col >= palaceBounds.colMin &&
+            col <= palaceBounds.colMax
+          ) {
+            if (chessPieceList[row][col].type !== kong && chessPieceList[row][col].player === player) {
+            } else {
+              verifiedAdd(row, col);
+            }
+          }
+        };
+
+        // 上下左右移动
+        verifiedAddInPalace(row + 1, col);
+        verifiedAddInPalace(row - 1, col);
+        verifiedAddInPalace(row, col + 1);
+        verifiedAddInPalace(row, col - 1);
+        // 对将逻辑
+        let blockingPiece = false;
+        for (let i = row + (player === 1 ? 1 : -1); i >= 0 && i < 10; i += player === 1 ? 1 : -1) {
+          const targetPiece = chessPieceList[i][col];
+          if (targetPiece.type !== kong) {
+            if (targetPiece.type === jiang && targetPiece.player !== player && !blockingPiece) {
+              verifiedAdd(i, col); // 对将
+            }
+            blockingPiece = true; // 标记为有阻挡
+          }
+        }
         break;
       case 5:
         // 士
@@ -193,35 +307,60 @@ const Board = () => {
     }
     setDotsIndex(dotsIndex);
   };
-  const handleDotsIndex = (chessPiece) => {
-    const PossibilityLocation = getPossibilityLocation({ chessPiece });
+  const handleSuccessJudgment = ({ chessPiece }) => {
+    if (chessPiece.type === jiang) {
+      setSuccessFlag(true);
+      return true;
+    }
+    return false;
   };
-  const handleMoveChessPiece = ({ index }) => {
-    console.log('handleMoveChessPiece');
-    const newRow = Math.floor(index / 9); // 使用 Math.floor 计算新行号
-    const oldRow = Math.floor(selectedIndex / 9); // 使用 Math.floor 计算旧行号
-    const newCol = index % 9; // 列号计算正确，无需修改
-    const oldCol = selectedIndex % 9; // 列号计算正确，无需修改
+  const handleMoveChessPiece = ({ index, chessPiece }) => {
+    const newRow = Math.floor(index / 9);
+    const oldRow = Math.floor(selectedIndex / 9);
+    const newCol = index % 9;
+    const oldCol = selectedIndex % 9;
+    const oldChessPiece = chessPieceList[oldRow][oldCol];
     const newChessPieceList = chessPieceList.map((row) => [...row]);
-    newChessPieceList[newRow][newCol] = { row: newRow, col: newCol, type: newChessPieceList[oldRow][oldCol].type };
+    newChessPieceList[newRow][newCol] = {
+      row: newRow,
+      col: newCol,
+      type: oldChessPiece.type,
+      player: oldChessPiece.player,
+    };
     newChessPieceList[oldRow][oldCol] = { type: kong };
     setChessPieceList(newChessPieceList);
+    if (handleSuccessJudgment({ chessPiece })) {
+      return;
+    }
+    playerRotation();
   };
   const onGridClick = ({ chessPiece, index }) => {
     const type = chessPiece.type;
-    if (type !== kong) {
-      setSelectedIndex(index);
-      handleDotsIndex(chessPiece);
-    } else if (dotsIndex.has(index)) {
-      handleMoveChessPiece({ index });
-      setDotsIndex(new Set());
-      setSelectedIndex(null);
+    const isOpposite = chessPiece.player && chessPiece.player !== player;
+    if (dotsIndex.has(index)) {
+      if (type === kong) {
+        handleMoveChessPiece({ chessPiece, index });
+        setDotsIndex(new Set());
+        setSelectedIndex(null);
+        return;
+      }
+      if (isOpposite) {
+        handleMoveChessPiece({ chessPiece, index });
+        setDotsIndex(new Set());
+        setSelectedIndex(null);
+        return;
+      }
     }
+    if (isOpposite) {
+      return;
+    }
+    setSelectedIndex(index);
+    handleDotsIndex({ chessPiece });
   };
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center p-4">
+    <div className="bg-[url(/chessboard2.png)] bg-cover px-[16px] py-[16px]">
       {
-        <div className="grid grid-cols-9 gap-5">
+        <div className="gap grid grid-cols-9">
           {chessPieceList.flat().map((chessPiece, index) => (
             <Grid
               key={index}
