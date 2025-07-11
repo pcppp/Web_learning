@@ -81,7 +81,6 @@ const Chess = () => {
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log('收到对手走子', data);
       if (data.type === 'move') {
         handleMoveChessPiece({ from: data.from, to: data.to });
       }
@@ -102,25 +101,32 @@ const Chess = () => {
     return false;
   };
   const handleMoveChessPiece = ({ from, to }) => {
-    const newRow = Math.floor(to / 9);
-    const oldRow = Math.floor(from / 9);
-    const newCol = to % 9;
-    const oldCol = from % 9;
-    const oldChessPiece = chessPieceList[oldRow][oldCol];
-    const newChessPiece = chessPieceList[newRow][newCol];
-    const newChessPieceList = chessPieceList.map((row) => [...row]);
-    newChessPieceList[newRow][newCol] = {
-      row: newRow,
-      col: newCol,
-      type: oldChessPiece.type,
-      player: oldChessPiece.player,
-    };
-    newChessPieceList[oldRow][oldCol] = { row: oldRow, col: oldCol, type: kong };
-    setChessPieceList(newChessPieceList);
-    if (handleSuccessJudgment({ chessPiece: newChessPiece })) {
-      return;
-    }
-    // playerRotation();
+    setChessPieceList((prev) => {
+      const newBoard = prev.map((row) => row.map((piece) => ({ ...piece })));
+
+      const newRow = Math.floor(to / 9);
+      const oldRow = Math.floor(from / 9);
+      const newCol = to % 9;
+      const oldCol = from % 9;
+
+      const movingPiece = prev[oldRow][oldCol];
+
+      newBoard[newRow][newCol] = {
+        row: newRow,
+        col: newCol,
+        type: movingPiece.type,
+        player: movingPiece.player,
+      };
+
+      newBoard[oldRow][oldCol] = {
+        row: oldRow,
+        col: oldCol,
+        type: kong,
+        player: null,
+      };
+
+      return newBoard;
+    });
   };
 
   return (
