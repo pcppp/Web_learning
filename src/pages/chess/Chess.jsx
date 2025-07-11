@@ -69,9 +69,14 @@ const initChessPieceList = () => {
   return chessPieceList;
 };
 const Chess = () => {
-  const [player, setPlayer] = useState(1);
+  const [player, setPlayer] = useState(null);
   const [chessPieceList, setChessPieceList] = useState(() => initChessPieceList());
   const [successFlag, setSuccessFlag] = useState(false);
+  const [playerRotation, setPlayerRotation] = useState(1);
+  const dispatchPlayerRotation = () => {
+    if (playerRotation === 1) setPlayerRotation(2);
+    else if (playerRotation === 2) setPlayerRotation(1);
+  };
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:2000');
     socketRef.current = socket;
@@ -81,6 +86,10 @@ const Chess = () => {
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log(data);
+      if (data.type === 'start') {
+        setPlayer(data.player);
+      }
       if (data.type === 'move') {
         handleMoveChessPiece({ from: data.from, to: data.to });
       }
@@ -88,10 +97,7 @@ const Chess = () => {
 
     return () => socket.close();
   }, []);
-  const playerRotation = () => {
-    if (player === 1) setPlayer(2);
-    else setPlayer(1);
-  };
+
   const socketRef = useRef(null);
   const handleSuccessJudgment = ({ chessPiece }) => {
     if (chessPiece.type === jiang) {
@@ -127,20 +133,22 @@ const Chess = () => {
 
       return newBoard;
     });
+    dispatchPlayerRotation();
   };
 
   return (
     <>
       <div className="flex h-full w-full flex-col items-center justify-center">
-        <PlayerPlateau player={1} isActivate={player === 1} className="flex-1" />
+        <PlayerPlateau player={1} isActivate={1 === playerRotation} className="flex-1" />
         <Board
           socket={socketRef}
           handleMoveChessPiece={handleMoveChessPiece}
           player={player}
           setPlayer={setPlayer}
           chessPieceList={chessPieceList}
+          playerRotation={playerRotation}
         />
-        <PlayerPlateau player={2} isActivate={player === 2} className="flex-1" />
+        <PlayerPlateau player={2} isActivate={2 === playerRotation} className="flex-1" />
       </div>
     </>
   );

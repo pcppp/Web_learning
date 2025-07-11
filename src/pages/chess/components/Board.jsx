@@ -90,7 +90,7 @@ const Grid = ({ chessPiece, isSelected, onClick, showDot }) => {
 const getIndexFromRowCol = ({ row, col }) => {
   return row * 9 + col;
 };
-const Board = ({ player, chessPieceList, socket, handleMoveChessPiece }) => {
+const Board = ({ player, playerRotation, chessPieceList, socket, handleMoveChessPiece }) => {
   const [dotsIndex, setDotsIndex] = useState(new Set());
   const [selectedIndex, setSelectedIndex] = useState(null);
   const socketCurrent = socket.current;
@@ -262,6 +262,7 @@ const Board = ({ player, chessPieceList, socket, handleMoveChessPiece }) => {
   };
 
   const onGridClick = ({ chessPiece, index }) => {
+    if (playerRotation !== player) return;
     const type = chessPiece.type;
     const isOpposite = chessPiece.player && chessPiece.player !== player;
     if (dotsIndex.has(index)) {
