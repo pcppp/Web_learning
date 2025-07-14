@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import Board from './components/board';
 import PlayerPlateau from './components/PlayerPlateau';
 import styled from 'styled-components';
+import useWebSocket from '../../hooks/useWebSocket';
 const kong = 0; // 空
 const ma = 1; // 马
 const ju = 2; // 车
@@ -91,15 +92,9 @@ const Chess = () => {
     return chessPieceList;
   };
   const [chessPieceList, setChessPieceList] = useState(() => initChessPieceList());
-  useEffect(() => {
-    const socket = new WebSocket('ws://localhost:2000');
-    socketRef.current = socket;
-    socket.onopen = () => {
-      socket.send(JSON.stringify({ type: 'join', roomId: 'room1' }));
-    };
-
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+  const { socketRef, sendMessage } = useWebSocket({
+    url: 'ws://localhost:2000',
+    onMessage: (data) => {
       if (data.type === 'joinSuccess') {
         setPlayer(data.player);
         isFlipped.current = data.player === 1;
@@ -111,12 +106,12 @@ const Chess = () => {
       if (data.type === 'move') {
         handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: !isFlipped.current });
       }
-    };
+    },
+    onOpen: () => {
+      sendMessage({ type: 'join', roomId: 'room1' });
+    },
+  });
 
-    return () => socket.close();
-  }, []);
-
-  const socketRef = useRef(null);
   const handleSuccessJudgment = ({ chessPiece }) => {
     if (chessPiece.type === jiang) {
       setSuccessFlag(true);
