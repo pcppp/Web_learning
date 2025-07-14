@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Board from './components/board';
 import PlayerPlateau from './components/PlayerPlateau';
+import styled from 'styled-components';
 const kong = 0; // 空
 const ma = 1; // 马
 const ju = 2; // 车
@@ -9,15 +10,27 @@ const jiang = 4; // 将
 const shi = 5; // 士
 const xiang = 6; // 象
 const zu = 7; // 卒
-
+const STATUS = {
+  WAITING: 'waiting',
+  READY: 'ready',
+  RECONNECTING: 'reconnecting',
+  PLAYING: 'playing',
+};
+const PlayerContainer = styled.div``;
 const Chess = () => {
   const [player, setPlayer] = useState(null);
   const [successFlag, setSuccessFlag] = useState(false);
   const playerRotation = useRef(1);
   const isFlipped = useRef(false);
+  // 'waiting' | 'ready' | 'reconnecting' | 'playing'
+  const [status, setStatus] = useState(STATUS.WAITING);
   const dispatchPlayerRotation = () => {
     if (playerRotation.current === 1) playerRotation.current = 2;
     else if (playerRotation.current === 2) playerRotation.current = 1;
+  };
+  const getAnotherPlayer = (player) => {
+    if (player === 2) return 1;
+    if (player === 1) return 2;
   };
   const initChessPieceList = () => {
     const chessPieceList = Array(10)
@@ -87,18 +100,16 @@ const Chess = () => {
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'start') {
+      if (data.type === 'joinSuccess') {
         setPlayer(data.player);
         isFlipped.current = data.player === 1;
-        if (isFlipped.current) {
-          return setChessPieceList((prev) => {
-            const newData = prev.slice().reverse();
-            return newData;
-          });
-        }
+      }
+
+      if (data.type === 'start') {
+        setStatus(STATUS.PLAYING);
       }
       if (data.type === 'move') {
-        handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: true });
+        handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: !isFlipped.current });
       }
     };
 
@@ -114,7 +125,7 @@ const Chess = () => {
     return false;
   };
 
-  const handleMoveChessPiece = ({ from, to, isFlipped = false }) => {
+  const handleMoveChessPiece = ({ from, to, isFlipped }) => {
     setChessPieceList((prev) => {
       const newBoard = prev.map((row) => row.map((piece) => ({ ...piece })));
 
@@ -148,7 +159,14 @@ const Chess = () => {
     <>
       <div>你是玩家{player}</div>
       <div className="flex h-full w-full flex-col items-center justify-center">
-        <PlayerPlateau player={1} isActivate={1 === playerRotation.current} className="flex-1" />
+        <PlayerContainer></PlayerContainer>
+        <PlayerPlateau
+          player={getAnotherPlayer(player)}
+          isActivate={getAnotherPlayer(player) === playerRotation.current}
+          className="flex-1">
+          {status === STATUS.WAITING && <div>等待对手加入</div>}
+          {status === STATUS.RECONNECTING && <div>等待对手重连</div>}
+        </PlayerPlateau>
         <Board
           socket={socketRef}
           handleMoveChessPiece={handleMoveChessPiece}
@@ -158,7 +176,7 @@ const Chess = () => {
           chessPieceList={chessPieceList}
           playerRotation={playerRotation.current}
         />
-        <PlayerPlateau player={2} isActivate={2 === playerRotation.current} className="flex-1" />
+        <PlayerPlateau player={player} isActivate={player === playerRotation.current} className="flex-1" />
       </div>
     </>
   );

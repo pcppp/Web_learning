@@ -94,6 +94,8 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
   const [dotsIndex, setDotsIndex] = useState(new Set());
   const [selectedIndex, setSelectedIndex] = useState(null);
   const socketCurrent = socket.current;
+  const renderedList = isFlipped ? [...chessPieceList].reverse() : chessPieceList;
+
   const handleDotsIndex = ({ chessPiece }) => {
     const dotsIndex = new Set();
     const directions = [
@@ -255,7 +257,6 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
         break;
       case 7:
         // 卒
-        verifiedAdd(row + 1, col);
         verifiedAdd(row - 1, col);
         break;
     }
@@ -267,7 +268,7 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
     const type = chessPiece.type;
     const isOpposite = chessPiece.player && chessPiece.player !== player;
     if (dotsIndex.has(index)) {
-      handleMoveChessPiece({ from: parseInt(selectedIndex), to: parseInt(index) });
+      handleMoveChessPiece({ from: parseInt(selectedIndex), to: parseInt(index), isFlipped: isFlipped });
       setDotsIndex(new Set());
       setSelectedIndex(null);
       socketCurrent.send(JSON.stringify({ type: 'move', from: parseInt(selectedIndex), to: parseInt(index) }));
@@ -279,22 +280,18 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
     setSelectedIndex(index);
     handleDotsIndex({ chessPiece });
   };
-
   return (
     <div className="bg-[url(/chessboard2.png)] bg-cover px-[16px] py-[16px]">
       {
         <div className="gap grid grid-cols-9">
-          {chessPieceList
-            .reverse()
-            .flat()
-            .map((chessPiece, index) => (
-              <Grid
-                key={index}
-                chessPiece={chessPiece}
-                onClick={() => onGridClick({ chessPiece, index })}
-                isSelected={selectedIndex === index}
-                showDot={dotsIndex.has(index)}></Grid>
-            ))}
+          {renderedList.flat().map((chessPiece, index) => (
+            <Grid
+              key={index}
+              chessPiece={chessPiece}
+              onClick={() => onGridClick({ chessPiece, index })}
+              isSelected={selectedIndex === index}
+              showDot={dotsIndex.has(index)}></Grid>
+          ))}
         </div>
       }
     </div>
