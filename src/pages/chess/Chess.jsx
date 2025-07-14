@@ -157,16 +157,14 @@ const Chess = () => {
 
   return (
     <>
-      <div>你是玩家{player}</div>
       <div className="flex h-full w-full flex-col items-center justify-center">
-        <PlayerContainer></PlayerContainer>
-        <PlayerPlateau
-          player={getAnotherPlayer(player)}
-          isActivate={getAnotherPlayer(player) === playerRotation.current}
-          className="flex-1">
-          {status === STATUS.WAITING && <div>等待对手加入</div>}
-          {status === STATUS.RECONNECTING && <div>等待对手重连</div>}
-        </PlayerPlateau>
+        <PlayerContainer className="flex-1">
+          <PlayerPlateau
+            status={status}
+            player={getAnotherPlayer(player)}
+            isActivate={getAnotherPlayer(player) === playerRotation.current}></PlayerPlateau>
+        </PlayerContainer>
+
         <Board
           socket={socketRef}
           handleMoveChessPiece={handleMoveChessPiece}
@@ -176,7 +174,9 @@ const Chess = () => {
           chessPieceList={chessPieceList}
           playerRotation={playerRotation.current}
         />
-        <PlayerPlateau player={player} isActivate={player === playerRotation.current} className="flex-1" />
+        <PlayerContainer className="flex-1">
+          <PlayerPlateau player={player} isActivate={player === playerRotation.current} />
+        </PlayerContainer>
       </div>
     </>
   );

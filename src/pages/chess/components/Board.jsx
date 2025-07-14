@@ -96,7 +96,7 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
   const socketCurrent = socket.current;
   const renderedList = isFlipped ? [...chessPieceList].reverse() : chessPieceList;
 
-  const handleDotsIndex = ({ chessPiece }) => {
+  const handleDotsIndex = ({ chessPiece, chessPieceList }) => {
     const dotsIndex = new Set();
     const directions = [
       [1, 0], // 向下
@@ -204,10 +204,7 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
         break;
       case 4:
         // 将
-        const palaceBounds =
-          player === 1
-            ? { rowMin: 0, rowMax: 2, colMin: 3, colMax: 5 } // 红方九宫格
-            : { rowMin: 7, rowMax: 9, colMin: 3, colMax: 5 }; // 黑方九宫格
+        const palaceBounds = { rowMin: 7, rowMax: 9, colMin: 3, colMax: 5 }; // 黑方九宫格
 
         const verifiedAddInPalace = (row, col) => {
           // 检查是否在九宫格内
@@ -278,7 +275,7 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
       return;
     }
     setSelectedIndex(index);
-    handleDotsIndex({ chessPiece });
+    handleDotsIndex({ chessPiece, chessPieceList: renderedList });
   };
   return (
     <div className="bg-[url(/chessboard2.png)] bg-cover px-[16px] py-[16px]">
