@@ -72,10 +72,10 @@ const Chess = () => {
   const [player, setPlayer] = useState(null);
   const [chessPieceList, setChessPieceList] = useState(() => initChessPieceList());
   const [successFlag, setSuccessFlag] = useState(false);
-  const [playerRotation, setPlayerRotation] = useState(1);
+  const playerRotation = useRef(1);
   const dispatchPlayerRotation = () => {
-    if (playerRotation === 1) setPlayerRotation(2);
-    else if (playerRotation === 2) setPlayerRotation(1);
+    if (playerRotation.current === 1) playerRotation.current = 2;
+    else if (playerRotation.current === 2) playerRotation.current = 1;
   };
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:2000');
@@ -138,17 +138,18 @@ const Chess = () => {
 
   return (
     <>
+      <div>你是玩家{player}</div>
       <div className="flex h-full w-full flex-col items-center justify-center">
-        <PlayerPlateau player={1} isActivate={1 === playerRotation} className="flex-1" />
+        <PlayerPlateau player={1} isActivate={1 === playerRotation.current} className="flex-1" />
         <Board
           socket={socketRef}
           handleMoveChessPiece={handleMoveChessPiece}
           player={player}
           setPlayer={setPlayer}
           chessPieceList={chessPieceList}
-          playerRotation={playerRotation}
+          playerRotation={playerRotation.current}
         />
-        <PlayerPlateau player={2} isActivate={2 === playerRotation} className="flex-1" />
+        <PlayerPlateau player={2} isActivate={2 === playerRotation.current} className="flex-1" />
       </div>
     </>
   );
