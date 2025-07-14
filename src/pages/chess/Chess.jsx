@@ -9,74 +9,75 @@ const jiang = 4; // 将
 const shi = 5; // 士
 const xiang = 6; // 象
 const zu = 7; // 卒
-const initChessPieceList = () => {
-  console.log('init');
-  const chessPieceList = Array(10)
-    .fill(null)
-    .map(() => Array(9).fill({}));
-  // 设置棋子的初始位置
-  const redPositions = [
-    { row: 0, col: 0, type: ju }, // 车
-    { row: 0, col: 1, type: ma }, // 马
-    { row: 0, col: 2, type: xiang }, // 象
-    { row: 0, col: 3, type: shi }, // 士
-    { row: 0, col: 4, type: jiang }, // 将
-    { row: 0, col: 5, type: shi }, // 士
-    { row: 0, col: 6, type: xiang }, // 象
-    { row: 0, col: 7, type: ma }, // 马
-    { row: 0, col: 8, type: ju }, // 车
-    { row: 2, col: 1, type: pao }, // 炮
-    { row: 2, col: 7, type: pao }, // 炮
-    { row: 3, col: 0, type: zu }, // 卒
-    { row: 3, col: 2, type: zu }, // 卒
-    { row: 3, col: 4, type: zu }, // 卒
-    { row: 3, col: 6, type: zu }, // 卒
-    { row: 3, col: 8, type: zu }, // 卒
-  ];
-  // 黑方棋子的初始位置
-  const blackPositions = [
-    { row: 9, col: 0, type: ju }, // 车
-    { row: 9, col: 1, type: ma }, // 马
-    { row: 9, col: 2, type: xiang }, // 象
-    { row: 9, col: 3, type: shi }, // 士
-    { row: 9, col: 4, type: jiang }, // 将
-    { row: 9, col: 5, type: shi }, // 士
-    { row: 9, col: 6, type: xiang }, // 象
-    { row: 9, col: 7, type: ma }, // 马
-    { row: 9, col: 8, type: ju }, // 车
-    { row: 7, col: 1, type: pao }, // 炮
-    { row: 7, col: 7, type: pao }, // 炮
-    { row: 6, col: 0, type: zu }, // 卒
-    { row: 6, col: 2, type: zu }, // 卒
-    { row: 6, col: 4, type: zu }, // 卒
-    { row: 6, col: 6, type: zu }, // 卒
-    { row: 6, col: 8, type: zu }, // 卒
-  ];
-  chessPieceList.forEach((rows, rowIndex) => {
-    rows.forEach((item, colIndex) => {
-      item.row = rowIndex;
-      item.col = colIndex;
-      item.type = kong;
-    });
-  });
-  // 将棋子放置到棋盘上
-  redPositions.forEach(({ row, col, type }) => {
-    chessPieceList[row][col] = { row, col, type, player: 1 };
-  });
-  blackPositions.forEach(({ row, col, type }) => {
-    chessPieceList[row][col] = { row, col, type, player: 2 };
-  });
-  return chessPieceList;
-};
+
 const Chess = () => {
   const [player, setPlayer] = useState(null);
-  const [chessPieceList, setChessPieceList] = useState(() => initChessPieceList());
   const [successFlag, setSuccessFlag] = useState(false);
   const playerRotation = useRef(1);
+  const isFlipped = useRef(false);
   const dispatchPlayerRotation = () => {
     if (playerRotation.current === 1) playerRotation.current = 2;
     else if (playerRotation.current === 2) playerRotation.current = 1;
   };
+  const initChessPieceList = () => {
+    const chessPieceList = Array(10)
+      .fill(null)
+      .map(() => Array(9).fill({}));
+    // 设置棋子的初始位置
+    const redPositions = [
+      { row: 0, col: 0, type: ju }, // 车
+      { row: 0, col: 1, type: ma }, // 马
+      { row: 0, col: 2, type: xiang }, // 象
+      { row: 0, col: 3, type: shi }, // 士
+      { row: 0, col: 4, type: jiang }, // 将
+      { row: 0, col: 5, type: shi }, // 士
+      { row: 0, col: 6, type: xiang }, // 象
+      { row: 0, col: 7, type: ma }, // 马
+      { row: 0, col: 8, type: ju }, // 车
+      { row: 2, col: 1, type: pao }, // 炮
+      { row: 2, col: 7, type: pao }, // 炮
+      { row: 3, col: 0, type: zu }, // 卒
+      { row: 3, col: 2, type: zu }, // 卒
+      { row: 3, col: 4, type: zu }, // 卒
+      { row: 3, col: 6, type: zu }, // 卒
+      { row: 3, col: 8, type: zu }, // 卒
+    ];
+    // 黑方棋子的初始位置
+    const blackPositions = [
+      { row: 9, col: 0, type: ju }, // 车
+      { row: 9, col: 1, type: ma }, // 马
+      { row: 9, col: 2, type: xiang }, // 象
+      { row: 9, col: 3, type: shi }, // 士
+      { row: 9, col: 4, type: jiang }, // 将
+      { row: 9, col: 5, type: shi }, // 士
+      { row: 9, col: 6, type: xiang }, // 象
+      { row: 9, col: 7, type: ma }, // 马
+      { row: 9, col: 8, type: ju }, // 车
+      { row: 7, col: 1, type: pao }, // 炮
+      { row: 7, col: 7, type: pao }, // 炮
+      { row: 6, col: 0, type: zu }, // 卒
+      { row: 6, col: 2, type: zu }, // 卒
+      { row: 6, col: 4, type: zu }, // 卒
+      { row: 6, col: 6, type: zu }, // 卒
+      { row: 6, col: 8, type: zu }, // 卒
+    ];
+    chessPieceList.forEach((rows, rowIndex) => {
+      rows.forEach((item, colIndex) => {
+        item.row = rowIndex;
+        item.col = colIndex;
+        item.type = kong;
+      });
+    });
+    // 将棋子放置到棋盘上
+    redPositions.forEach(({ row, col, type }) => {
+      chessPieceList[row][col] = { row, col, type, player: 1 };
+    });
+    blackPositions.forEach(({ row, col, type }) => {
+      chessPieceList[row][col] = { row, col, type, player: 2 };
+    });
+    return chessPieceList;
+  };
+  const [chessPieceList, setChessPieceList] = useState(() => initChessPieceList());
   useEffect(() => {
     const socket = new WebSocket('ws://localhost:2000');
     socketRef.current = socket;
@@ -86,12 +87,18 @@ const Chess = () => {
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log(data);
       if (data.type === 'start') {
         setPlayer(data.player);
+        isFlipped.current = data.player === 1;
+        if (isFlipped.current) {
+          return setChessPieceList((prev) => {
+            const newData = prev.slice().reverse();
+            return newData;
+          });
+        }
       }
       if (data.type === 'move') {
-        handleMoveChessPiece({ from: data.from, to: data.to });
+        handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: true });
       }
     };
 
@@ -106,12 +113,13 @@ const Chess = () => {
     }
     return false;
   };
-  const handleMoveChessPiece = ({ from, to }) => {
+
+  const handleMoveChessPiece = ({ from, to, isFlipped = false }) => {
     setChessPieceList((prev) => {
       const newBoard = prev.map((row) => row.map((piece) => ({ ...piece })));
 
-      const newRow = Math.floor(to / 9);
-      const oldRow = Math.floor(from / 9);
+      const newRow = isFlipped ? 9 - Math.floor(to / 9) : Math.floor(to / 9);
+      const oldRow = isFlipped ? 9 - Math.floor(from / 9) : Math.floor(from / 9);
       const newCol = to % 9;
       const oldCol = from % 9;
 
@@ -145,6 +153,7 @@ const Chess = () => {
           socket={socketRef}
           handleMoveChessPiece={handleMoveChessPiece}
           player={player}
+          isFlipped={isFlipped.current}
           setPlayer={setPlayer}
           chessPieceList={chessPieceList}
           playerRotation={playerRotation.current}

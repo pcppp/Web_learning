@@ -90,7 +90,7 @@ const Grid = ({ chessPiece, isSelected, onClick, showDot }) => {
 const getIndexFromRowCol = ({ row, col }) => {
   return row * 9 + col;
 };
-const Board = ({ player, playerRotation, chessPieceList, socket, handleMoveChessPiece }) => {
+const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, handleMoveChessPiece }) => {
   const [dotsIndex, setDotsIndex] = useState(new Set());
   const [selectedIndex, setSelectedIndex] = useState(null);
   const socketCurrent = socket.current;
@@ -102,7 +102,8 @@ const Board = ({ player, playerRotation, chessPieceList, socket, handleMoveChess
       [0, 1], // 向右
       [0, -1], // 向左
     ];
-    const { row, col } = chessPiece;
+    const row = isFlipped ? 9 - chessPiece.row : chessPiece.row;
+    const col = chessPiece.col;
     const verifiedAdd = (row, col) => {
       if (verify(row, col)) {
         dotsIndex.add(row * 9 + col);
@@ -278,18 +279,22 @@ const Board = ({ player, playerRotation, chessPieceList, socket, handleMoveChess
     setSelectedIndex(index);
     handleDotsIndex({ chessPiece });
   };
+
   return (
     <div className="bg-[url(/chessboard2.png)] bg-cover px-[16px] py-[16px]">
       {
         <div className="gap grid grid-cols-9">
-          {chessPieceList.flat().map((chessPiece, index) => (
-            <Grid
-              key={index}
-              chessPiece={chessPiece}
-              onClick={() => onGridClick({ chessPiece, index })}
-              isSelected={selectedIndex === index}
-              showDot={dotsIndex.has(index)}></Grid>
-          ))}
+          {chessPieceList
+            .reverse()
+            .flat()
+            .map((chessPiece, index) => (
+              <Grid
+                key={index}
+                chessPiece={chessPiece}
+                onClick={() => onGridClick({ chessPiece, index })}
+                isSelected={selectedIndex === index}
+                showDot={dotsIndex.has(index)}></Grid>
+            ))}
         </div>
       }
     </div>
