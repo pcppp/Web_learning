@@ -94,7 +94,7 @@ const Chess = () => {
     return chessPieceList;
   };
   const [chessPieceList, setChessPieceList] = useState(() => initChessPieceList());
-  const { socketRef, sendMessage } = useWebSocket({
+  const { socketRef, sendMessage, connectionStatus } = useWebSocket({
     url: 'ws://localhost:2000',
     onMessage: (data) => {
       if (data.type === 'joinSuccess') {
@@ -107,6 +107,9 @@ const Chess = () => {
       }
       if (data.type === 'move') {
         handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: !isFlipped });
+      }
+      if (data.type === 'opponentDisConnect') {
+        setStatus(STATUS.RECONNECTING);
       }
     },
     onOpen: () => {

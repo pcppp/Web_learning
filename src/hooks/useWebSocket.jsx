@@ -1,22 +1,33 @@
 // hooks/useWebSocket.js
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const HEARTBEAT_INTERVAL = 10000; // 心跳间隔 10 秒
 const RECONNECT_INTERVAL = 3000; // 重连间隔 3 秒
-
+const CONNECTION_STATUS = {
+  CONNECTED: 'connected',
+  CONNECTING: 'connecting',
+};
 export default function useWebSocket({ url, onMessage, onOpen }) {
   const wsRef = useRef(null);
   const heartbeatTimer = useRef(null);
   const reconnectTimer = useRef(null);
-
+  const isAlive = useRef(true);
+  const [connectionStatus, setConnectionStatus] = useState(CONNECTION_STATUS.CONNECTING);
   useEffect(() => {
-    console.log('useEffect start');
     let socket;
     function startHeartbeat(ws) {
       clearInterval(heartbeatTimer.current);
       heartbeatTimer.current = setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
+          isAlive.current = false;
           ws.send(JSON.stringify({ type: 'ping' }));
+          // 检测是否在一定时间内收到 pong
+          setTimeout(() => {
+            if (!isAlive.current) {
+              console.warn('[WebSocket] Heartbeat failed. Reconnecting...');
+              wsRef.current.close(); // 触发重连逻辑
+            }
+          }, HEARTBEAT_INTERVAL / 2); // 等待半个心跳间隔
         }
       }, HEARTBEAT_INTERVAL);
     }
@@ -26,6 +37,7 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
 
       socket.onopen = () => {
         console.log('[WebSocket] Connected');
+        setConnectionStatus(CONNECTION_STATUS.CONNECTED);
         onOpen?.();
         startHeartbeat(socket);
       };
@@ -36,6 +48,9 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
           if (data.type !== 'pong') {
             console.log('onMessage', data);
             onMessage(data);
+          } else {
+            isAlive.current = true;
+            console.log('pone');
           }
         } catch (err) {
           console.error('[WebSocket] Message parsing error:', err);
@@ -43,11 +58,8 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
       };
       socket.onclose = () => {
         console.warn('[WebSocket] Disconnected. Reconnecting...');
-        console.log(wsRef.current);
-        console.log(socket);
-        if (wsRef.current === socket) {
-          reconnectTimer.current = setTimeout(connect, RECONNECT_INTERVAL);
-        }
+        setConnectionStatus(CONNECTION_STATUS.CONNECTING);
+        reconnectTimer.current = setTimeout(connect, RECONNECT_INTERVAL);
       };
       socket.onerror = (err) => {
         console.error('[WebSocket] Error occurred:', err);
@@ -56,7 +68,6 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
     }
     connect();
     return () => {
-      console.log('useEffect end');
       if (wsRef.current) {
         console.log(wsRef.current);
         console.log('[WebSocket] Cleaning up...');
@@ -80,5 +91,6 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
   return {
     sendMessage,
     socketRef: wsRef,
+    connectionStatus,
   };
 }
