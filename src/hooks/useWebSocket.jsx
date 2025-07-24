@@ -10,6 +10,7 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
   const reconnectTimer = useRef(null);
 
   useEffect(() => {
+    console.log('useEffect start');
     let socket;
     function startHeartbeat(ws) {
       clearInterval(heartbeatTimer.current);
@@ -33,7 +34,7 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
         try {
           const data = JSON.parse(event.data);
           if (data.type !== 'pong') {
-            console.log('onMEssage', data);
+            console.log('onMessage', data);
             onMessage(data);
           }
         } catch (err) {
@@ -42,7 +43,11 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
       };
       socket.onclose = () => {
         console.warn('[WebSocket] Disconnected. Reconnecting...');
-        reconnectTimer.current = setTimeout(connect, RECONNECT_INTERVAL);
+        console.log(wsRef.current);
+        console.log(socket);
+        if (wsRef.current === socket) {
+          reconnectTimer.current = setTimeout(connect, RECONNECT_INTERVAL);
+        }
       };
       socket.onerror = (err) => {
         console.error('[WebSocket] Error occurred:', err);
@@ -51,10 +56,17 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
     }
     connect();
     return () => {
-      console.log('[WebSocket] Cleaning up...');
-      clearInterval(heartbeatTimer.current);
-      clearTimeout(reconnectTimer.current);
-      wsRef.current?.close();
+      console.log('useEffect end');
+      if (wsRef.current) {
+        console.log(wsRef.current);
+        console.log('[WebSocket] Cleaning up...');
+        clearInterval(heartbeatTimer.current);
+        clearTimeout(reconnectTimer.current);
+        wsRef.current.onclose = null; // 防止触发重连逻辑
+        wsRef.current.onerror = null; // 防止触发错误处理
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
   }, [url]);
   const sendMessage = (data) => {

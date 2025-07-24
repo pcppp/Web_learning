@@ -21,13 +21,15 @@ const PlayerContainer = styled.div``;
 const Chess = () => {
   const [player, setPlayer] = useState(null);
   const [successFlag, setSuccessFlag] = useState(false);
-  const playerRotation = useRef(1);
-  const isFlipped = useRef(false);
+  const [playerRotation, setPlayerRotation] = useState(1);
+  const [isFlipped, setIsFlipped] = useState(false);
   // 'waiting' | 'ready' | 'reconnecting' | 'playing'
   const [status, setStatus] = useState(STATUS.WAITING);
   const dispatchPlayerRotation = () => {
-    if (playerRotation.current === 1) playerRotation.current = 2;
-    else if (playerRotation.current === 2) playerRotation.current = 1;
+    setPlayerRotation((prev) => {
+      if (prev === 1) return 2;
+      else if (prev) return 1;
+    });
   };
   const getAnotherPlayer = (player) => {
     if (player === 2) return 1;
@@ -97,14 +99,14 @@ const Chess = () => {
     onMessage: (data) => {
       if (data.type === 'joinSuccess') {
         setPlayer(data.player);
-        isFlipped.current = data.player === 1;
+        setIsFlipped(data.player === 1);
       }
 
       if (data.type === 'start') {
         setStatus(STATUS.PLAYING);
       }
       if (data.type === 'move') {
-        handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: !isFlipped.current });
+        handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: !isFlipped });
       }
     },
     onOpen: () => {
@@ -157,20 +159,20 @@ const Chess = () => {
           <PlayerPlateau
             status={status}
             player={getAnotherPlayer(player)}
-            isActivate={getAnotherPlayer(player) === playerRotation.current}></PlayerPlateau>
+            isActivate={getAnotherPlayer(player) === playerRotation}></PlayerPlateau>
         </PlayerContainer>
 
         <Board
           socket={socketRef}
           handleMoveChessPiece={handleMoveChessPiece}
           player={player}
-          isFlipped={isFlipped.current}
+          isFlipped={isFlipped}
           setPlayer={setPlayer}
           chessPieceList={chessPieceList}
-          playerRotation={playerRotation.current}
+          playerRotation={playerRotation}
         />
         <PlayerContainer className="flex-1">
-          <PlayerPlateau player={player} isActivate={player === playerRotation.current} />
+          <PlayerPlateau player={player} isActivate={player === playerRotation} />
         </PlayerContainer>
       </div>
     </>
