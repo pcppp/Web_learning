@@ -100,14 +100,20 @@ const Chess = () => {
       if (data.type === 'joinSuccess') {
         setPlayer(data.player);
         setIsFlipped(data.player === 1);
+        // if (data.chessPieceList) {
+        //   setChessPieceList(data.chessPieceList);
+        // }
       }
 
       if (data.type === 'start') {
         setStatus(STATUS.PLAYING);
       }
       if (data.type === 'move') {
-        handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: !isFlipped });
+        handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: true, chessPieceList: chessPieceList });
       }
+      // if (data.type === 'reConnected') {
+      //   handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: !isFlipped });
+      // }
       if (data.type === 'opponentDisConnect') {
         setStatus(STATUS.RECONNECTING);
       }
@@ -125,12 +131,12 @@ const Chess = () => {
     return false;
   };
 
-  const handleMoveChessPiece = ({ from, to, isFlipped }) => {
+  const handleMoveChessPiece = ({ from, to }) => {
     setChessPieceList((prev) => {
       const newBoard = prev.map((row) => row.map((piece) => ({ ...piece })));
 
-      const newRow = isFlipped ? 9 - Math.floor(to / 9) : Math.floor(to / 9);
-      const oldRow = isFlipped ? 9 - Math.floor(from / 9) : Math.floor(from / 9);
+      const newRow = Math.floor(to / 9);
+      const oldRow = Math.floor(from / 9);
       const newCol = to % 9;
       const oldCol = from % 9;
 

@@ -94,7 +94,7 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
   const [dotsIndex, setDotsIndex] = useState(new Set());
   const [selectedIndex, setSelectedIndex] = useState(null);
   const socketCurrent = socket.current;
-  const renderedList = isFlipped ? [...chessPieceList].reverse() : chessPieceList;
+  const renderedList = chessPieceList;
 
   const handleDotsIndex = ({ chessPiece, chessPieceList }) => {
     const dotsIndex = new Set();
@@ -104,7 +104,7 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
       [0, 1], // 向右
       [0, -1], // 向左
     ];
-    const row = isFlipped ? 9 - chessPiece.row : chessPiece.row;
+    const row = chessPiece.row;
     const col = chessPiece.col;
     const verifiedAdd = (row, col) => {
       if (verify(row, col)) {
@@ -254,7 +254,7 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
         break;
       case 7:
         // 卒
-        verifiedAdd(row - 1, col);
+        verifiedAdd(isFlipped ? row + 1 : row - 1, col);
         break;
     }
     setDotsIndex(dotsIndex);
@@ -265,7 +265,7 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
     const type = chessPiece.type;
     const isOpposite = chessPiece.player && chessPiece.player !== player;
     if (dotsIndex.has(index)) {
-      handleMoveChessPiece({ from: parseInt(selectedIndex), to: parseInt(index), isFlipped: isFlipped });
+      handleMoveChessPiece({ from: parseInt(selectedIndex), to: parseInt(index) });
       setDotsIndex(new Set());
       setSelectedIndex(null);
       socketCurrent.send(JSON.stringify({ type: 'move', from: parseInt(selectedIndex), to: parseInt(index) }));
@@ -278,16 +278,18 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
     handleDotsIndex({ chessPiece, chessPieceList: renderedList });
   };
   return (
-    <div className="bg-[url(/chessboard2.png)] bg-cover px-[16px] py-[16px]">
+    <div
+      className={`bg-[url(/chessboard2.png)] bg-cover px-[16px] py-[16px] ${isFlipped ? 'rotate-180 transform' : ''}`}>
       {
         <div className="gap grid grid-cols-9">
           {renderedList.flat().map((chessPiece, index) => (
-            <Grid
-              key={index}
-              chessPiece={chessPiece}
-              onClick={() => onGridClick({ chessPiece, index })}
-              isSelected={selectedIndex === index}
-              showDot={dotsIndex.has(index)}></Grid>
+            <div className={isFlipped ? 'rotate-180 transform' : ''} key={index}>
+              <Grid
+                chessPiece={chessPiece}
+                onClick={() => onGridClick({ chessPiece, index })}
+                isSelected={selectedIndex === index}
+                showDot={dotsIndex.has(index)}></Grid>
+            </div>
           ))}
         </div>
       }

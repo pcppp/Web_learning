@@ -24,7 +24,7 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
           // 检测是否在一定时间内收到 pong
           setTimeout(() => {
             if (!isAlive.current) {
-              console.warn('[WebSocket] Heartbeat failed. Reconnecting...');
+              //   console.warn('[WebSocket] Heartbeat failed. Reconnecting...');
               wsRef.current.close(); // 触发重连逻辑
             }
           }, HEARTBEAT_INTERVAL / 2); // 等待半个心跳间隔
@@ -36,7 +36,7 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
       wsRef.current = socket;
 
       socket.onopen = () => {
-        console.log('[WebSocket] Connected');
+        // console.log('[WebSocket] Connected');
         setConnectionStatus(CONNECTION_STATUS.CONNECTED);
         onOpen?.();
         startHeartbeat(socket);
@@ -46,31 +46,32 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
         try {
           const data = JSON.parse(event.data);
           if (data.type !== 'pong') {
-            console.log('onMessage', data);
+            // console.log('onMessage', data);
             onMessage(data);
           } else {
             isAlive.current = true;
-            console.log('pone');
+            // console.log('pone');
           }
         } catch (err) {
-          console.error('[WebSocket] Message parsing error:', err);
+          //   console.error('[WebSocket] Message parsing error:', err);
         }
       };
+
       socket.onclose = () => {
-        console.warn('[WebSocket] Disconnected. Reconnecting...');
+        // console.warn('[WebSocket] Disconnected. Reconnecting...');
         setConnectionStatus(CONNECTION_STATUS.CONNECTING);
         reconnectTimer.current = setTimeout(connect, RECONNECT_INTERVAL);
       };
       socket.onerror = (err) => {
-        console.error('[WebSocket] Error occurred:', err);
+        // console.error('[WebSocket] Error occurred:', err);
         socket.close(); // 触发重连
       };
     }
     connect();
     return () => {
       if (wsRef.current) {
-        console.log(wsRef.current);
-        console.log('[WebSocket] Cleaning up...');
+        // console.log(wsRef.current);
+        // console.log('[WebSocket] Cleaning up...');
         clearInterval(heartbeatTimer.current);
         clearTimeout(reconnectTimer.current);
         wsRef.current.onclose = null; // 防止触发重连逻辑
