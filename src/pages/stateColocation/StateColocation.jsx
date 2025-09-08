@@ -1,5 +1,6 @@
 import React from 'react';
 import { InputPro } from '../../components/inputPro';
+import './StateColocation.css';
 function sleep(time) {
   const done = Date.now() + time;
   while (done > Date.now()) {
@@ -53,6 +54,23 @@ function StateColocation() {
       <SlowComponent time={time} onChange={setTime} />
       <p style={{ color: 'red' }}>GOOD:</p>
       <DogName2 time={time} />
+      <br></br>
+      <p>BFC排除外部浮动</p>
+
+      <section>
+        <div className="float">Try to resize this outer float</div>
+        <div className="box" style={{ display: 'flow-root' }}>
+          <p>
+            <code>display:flow-root</code>
+          </p>
+        </div>
+      </section>
+      <section>
+        <div className="float">Try to resize this outer float</div>
+        <div className="box">
+          <p>Normal</p>
+        </div>
+      </section>
     </div>
   );
 }

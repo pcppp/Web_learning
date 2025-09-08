@@ -1,10 +1,11 @@
 {
-  "name": "react_learning",
-  "private": true,
+  "name": "my-web-project",
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "pnpm run dev:react & pnpm run dev:vue & pnpm run dev:docs",
+    "dev:react": "pnpm --filter react-project dev",
+    "dev:vue": "pnpm --filter vue-project dev",
+    "dev:docs": "pnpm --filter docs docs:dev",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -30,6 +31,9 @@
     "style-components": "^0.1.0",
     "styled-components": "^6.1.15",
     "tailwindcss": "^4.1.7",
+    "typescript": "^5.9.2",
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.21",
     "websocket": "^1.0.35"
   },
   "devDependencies": {
@@ -37,6 +41,7 @@
     "@types/react": "^18.3.10",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.2",
+    "@vitejs/plugin-vue": "^6.0.1",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-alias": "^1.1.2",
