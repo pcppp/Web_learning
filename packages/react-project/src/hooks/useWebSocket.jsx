@@ -1,4 +1,3 @@
-// hooks/useWebSocket.js
 import { useEffect, useRef, useState } from 'react';
 
 const HEARTBEAT_INTERVAL = 10000; // 心跳间隔 10 秒
@@ -80,7 +79,7 @@ export default function useWebSocket({ url, onMessage, onOpen }) {
         wsRef.current = null;
       }
     };
-  }, [url]);
+  }, [url, onMessage, onOpen]);
   const sendMessage = (data) => {
     const ws = wsRef.current;
     if (ws && ws.readyState === WebSocket.OPEN) {

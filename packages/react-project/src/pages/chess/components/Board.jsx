@@ -108,7 +108,7 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
     const col = chessPiece.col;
     const verifiedAdd = (row, col) => {
       if (verify(row, col)) {
-        dotsIndex.add(row * 9 + col);
+        if (chessPieceList[row][col].player !== chessPiece.player) dotsIndex.add(row * 9 + col);
         return true;
       }
       return false;
@@ -121,143 +121,156 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
     };
     const type = chessPiece.type;
     switch (type) {
-      case 1: {
-        //马
-        const moveList = [
-          [1, 2],
-          [1, -2],
-          [2, 1],
-          [2, -1],
-          [-1, 2],
-          [-1, -2],
-          [-2, 1],
-          [-2, -1],
-        ];
-        moveList.forEach((move) => {
-          let blockIndex = null;
-          if (Math.abs(move[0]) === 2) {
-            const blockIncremental = move[0] / 2;
-            blockIndex = getIndexFromRowCol({ row: row + blockIncremental, col: col });
-          } else {
-            const blockIncremental = move[1] / 2;
-            blockIndex = getIndexFromRowCol({ row: row, col: col + blockIncremental });
-          }
-          if (chessPieceList.flat()[blockIndex] && chessPieceList.flat()[blockIndex].type !== kong) return;
-          verifiedAdd(row + move[0], col + move[1]);
-        });
-
+      case 1:
+        {
+          //马
+          const moveList = [
+            [1, 2],
+            [1, -2],
+            [2, 1],
+            [2, -1],
+            [-1, 2],
+            [-1, -2],
+            [-2, 1],
+            [-2, -1],
+          ];
+          moveList.forEach((move) => {
+            let blockIndex = null;
+            if (Math.abs(move[0]) === 2) {
+              const blockIncremental = move[0] / 2;
+              blockIndex = getIndexFromRowCol({ row: row + blockIncremental, col: col });
+            } else {
+              const blockIncremental = move[1] / 2;
+              blockIndex = getIndexFromRowCol({ row: row, col: col + blockIncremental });
+            }
+            if (chessPieceList.flat()[blockIndex] && chessPieceList.flat()[blockIndex].type !== kong) return;
+            verifiedAdd(row + move[0], col + move[1]);
+          });
+        }
         break;
-      }
 
       case 2:
-        // 车
-        directions.forEach(([rowIncrement, colIncrement]) => {
-          for (let i = 1; i < 10; i++) {
-            const newRow = row + i * rowIncrement;
-            const newCol = col + i * colIncrement;
-            // 边界检查
-            if (!verify(newRow, newCol)) break;
+        {
+          // 车
+          directions.forEach(([rowIncrement, colIncrement]) => {
+            for (let i = 1; i < 10; i++) {
+              const newRow = row + i * rowIncrement;
+              const newCol = col + i * colIncrement;
+              // 边界检查
+              if (!verify(newRow, newCol)) break;
 
-            // 如果遇到棋子
-            if (chessPieceList[newRow][newCol].type !== kong) {
-              // 如果是敌方棋子，可以吃掉
-              if (chessPieceList[newRow][newCol].player !== player) {
-                verifiedAdd(newRow, newCol);
-              }
-              break; // 遇到棋子后停止
-            }
-            // 如果是空格，添加到可移动位置
-            verifiedAdd(newRow, newCol);
-          }
-        });
-        break;
-      case 3:
-        directions.forEach(([rowIncrement, colIncrement]) => {
-          let hasJumped = false; // 标记是否已经越过一个棋子
-
-          for (let i = 1; i < 10; i++) {
-            const newRow = row + i * rowIncrement;
-            const newCol = col + i * colIncrement;
-
-            // 边界检查
-            if (newRow < 0 || newRow >= 10 || newCol < 0 || newCol >= 9) break;
-
-            const targetPiece = chessPieceList[newRow][newCol];
-
-            if (targetPiece.type !== kong) {
-              if (!hasJumped) {
-                // 第一次遇到棋子，标记为已越过
-                hasJumped = true;
-              } else {
-                // 第二次遇到棋子，检查是否是敌方棋子
-                if (targetPiece.player !== player) {
-                  verifiedAdd(newRow, newCol); // 可以吃掉敌方棋子
+              // 如果遇到棋子
+              if (chessPieceList[newRow][newCol].type !== kong) {
+                // 如果是敌方棋子，可以吃掉
+                if (chessPieceList[newRow][newCol].player !== player) {
+                  verifiedAdd(newRow, newCol);
                 }
-                break; // 无论是否吃子，炮的路径到此结束
+                break; // 遇到棋子后停止
               }
-            } else {
-              // 如果是空格
-              if (!hasJumped) {
-                verifiedAdd(newRow, newCol); // 只有在未越过棋子的情况下才能移动到空格
-              }
+              // 如果是空格，添加到可移动位置
+              verifiedAdd(newRow, newCol);
             }
-          }
-        });
+          });
+        }
         break;
-      case 4: {
-        // 将
-        const palaceBounds = { rowMin: 7, rowMax: 9, colMin: 3, colMax: 5 }; // 黑方九宫格
 
-        const verifiedAddInPalace = (row, col) => {
-          // 检查是否在九宫格内
-          if (
-            row >= palaceBounds.rowMin &&
-            row <= palaceBounds.rowMax &&
-            col >= palaceBounds.colMin &&
-            col <= palaceBounds.colMax
-          ) {
-            if (!(chessPieceList[row][col].type !== kong && chessPieceList[row][col].player === player)) {
-              verifiedAdd(row, col);
-            }
-          }
-        };
+      case 3:
+        {
+          directions.forEach(([rowIncrement, colIncrement]) => {
+            let hasJumped = false; // 标记是否已经越过一个棋子
 
-        // 上下左右移动
-        verifiedAddInPalace(row + 1, col);
-        verifiedAddInPalace(row - 1, col);
-        verifiedAddInPalace(row, col + 1);
-        verifiedAddInPalace(row, col - 1);
-        // 对将逻辑
-        let blockingPiece = false;
-        for (let i = row + (player === 1 ? 1 : -1); i >= 0 && i < 10; i += player === 1 ? 1 : -1) {
-          const targetPiece = chessPieceList[i][col];
-          if (targetPiece.type !== kong) {
-            if (targetPiece.type === jiang && targetPiece.player !== player && !blockingPiece) {
-              verifiedAdd(i, col); // 对将
+            for (let i = 1; i < 10; i++) {
+              const newRow = row + i * rowIncrement;
+              const newCol = col + i * colIncrement;
+
+              // 边界检查
+              if (newRow < 0 || newRow >= 10 || newCol < 0 || newCol >= 9) break;
+
+              const targetPiece = chessPieceList[newRow][newCol];
+
+              if (targetPiece.type !== kong) {
+                if (!hasJumped) {
+                  // 第一次遇到棋子，标记为已越过
+                  hasJumped = true;
+                } else {
+                  // 第二次遇到棋子，检查是否是敌方棋子
+                  if (targetPiece.player !== player) {
+                    verifiedAdd(newRow, newCol); // 可以吃掉敌方棋子
+                  }
+                  break; // 无论是否吃子，炮的路径到此结束
+                }
+              } else {
+                // 如果是空格
+                if (!hasJumped) {
+                  verifiedAdd(newRow, newCol); // 只有在未越过棋子的情况下才能移动到空格
+                }
+              }
             }
-            blockingPiece = true; // 标记为有阻挡
+          });
+        }
+
+        break;
+      case 4:
+        {
+          // 将
+          const palaceBounds = { rowMin: 7, rowMax: 9, colMin: 3, colMax: 5 }; // 黑方九宫格
+
+          const verifiedAddInPalace = (row, col) => {
+            // 检查是否在九宫格内
+            if (
+              row >= palaceBounds.rowMin &&
+              row <= palaceBounds.rowMax &&
+              col >= palaceBounds.colMin &&
+              col <= palaceBounds.colMax
+            ) {
+              if (!(chessPieceList[row][col].type !== kong && chessPieceList[row][col].player === player)) {
+                verifiedAdd(row, col);
+              }
+            }
+          };
+
+          // 上下左右移动
+          verifiedAddInPalace(row + 1, col);
+          verifiedAddInPalace(row - 1, col);
+          verifiedAddInPalace(row, col + 1);
+          verifiedAddInPalace(row, col - 1);
+          // 对将逻辑
+          let blockingPiece = false;
+          for (let i = row + (player === 1 ? 1 : -1); i >= 0 && i < 10; i += player === 1 ? 1 : -1) {
+            const targetPiece = chessPieceList[i][col];
+            if (targetPiece.type !== kong) {
+              if (targetPiece.type === jiang && targetPiece.player !== player && !blockingPiece) {
+                verifiedAdd(i, col); // 对将
+              }
+              blockingPiece = true; // 标记为有阻挡
+            }
           }
         }
         break;
-      }
 
       case 5:
         // 士
-        verifiedAdd(row + 1, col + 1);
-        verifiedAdd(row + 1, col - 1);
-        verifiedAdd(row - 1, col + 1);
-        verifiedAdd(row - 1, col - 1);
+        {
+          verifiedAdd(row + 1, col + 1);
+          verifiedAdd(row + 1, col - 1);
+          verifiedAdd(row - 1, col + 1);
+          verifiedAdd(row - 1, col - 1);
+        }
         break;
       case 6:
-        // 象
-        verifiedAdd(row + 2, col + 2);
-        verifiedAdd(row + 2, col - 2);
-        verifiedAdd(row - 2, col + 2);
-        verifiedAdd(row - 2, col - 2);
+        {
+          // 象
+          verifiedAdd(row + 2, col + 2);
+          verifiedAdd(row + 2, col - 2);
+          verifiedAdd(row - 2, col + 2);
+          verifiedAdd(row - 2, col - 2);
+        }
         break;
       case 7:
-        // 卒
-        verifiedAdd(isFlipped ? row + 1 : row - 1, col);
+        {
+          // 卒
+          verifiedAdd(isFlipped ? row + 1 : row - 1, col);
+        }
         break;
     }
     setDotsIndex(dotsIndex);
@@ -266,6 +279,7 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
   const onGridClick = ({ chessPiece, index }) => {
     if (playerRotation !== player) return;
     const type = chessPiece.type;
+    // 是否选择自己的棋子
     const isOpposite = chessPiece.player && chessPiece.player !== player;
     if (dotsIndex.has(index)) {
       handleMoveChessPiece({ from: parseInt(selectedIndex), to: parseInt(index) });

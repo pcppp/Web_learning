@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Board from './components/board';
 import PlayerPlateau from './components/PlayerPlateau';
 import styled from 'styled-components';
@@ -96,7 +96,7 @@ const Chess = () => {
   const [chessPieceList, setChessPieceList] = useState(() => initChessPieceList());
   const { socketRef, sendMessage, connectionStatus } = useWebSocket({
     url: 'ws://localhost:2000',
-    onMessage: (data) => {
+    onMessage: useCallback((data) => {
       if (data.type === 'joinSuccess') {
         setPlayer(data.player);
         setIsFlipped(data.player === 1);
@@ -117,10 +117,10 @@ const Chess = () => {
       if (data.type === 'opponentDisConnect') {
         setStatus(STATUS.RECONNECTING);
       }
-    },
-    onOpen: () => {
+    }, []),
+    onOpen: useCallback(() => {
       sendMessage({ type: 'join', roomId: 'room1' });
-    },
+    }, []),
   });
 
   const handleSuccessJudgment = ({ chessPiece }) => {
