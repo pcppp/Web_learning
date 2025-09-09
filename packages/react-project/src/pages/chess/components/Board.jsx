@@ -281,18 +281,26 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
     const type = chessPiece.type;
     // 是否选择自己的棋子
     const isOpposite = chessPiece.player && chessPiece.player !== player;
-    if (dotsIndex.has(index)) {
-      handleMoveChessPiece({ from: parseInt(selectedIndex), to: parseInt(index) });
-      setDotsIndex(new Set());
-      setSelectedIndex(null);
-      socketCurrent.send(JSON.stringify({ type: 'move', from: parseInt(selectedIndex), to: parseInt(index) }));
-      return;
-    }
+
     if (isOpposite) {
       return;
     }
     setSelectedIndex(index);
     handleDotsIndex({ chessPiece, chessPieceList: renderedList });
+    if (dotsIndex.has(index)) {
+      const newChessPieceList = handleMoveChessPiece({ from: parseInt(selectedIndex), to: parseInt(index) });
+      setDotsIndex(new Set());
+      setSelectedIndex(null);
+      socketCurrent.send(
+        JSON.stringify({
+          type: 'move',
+          from: parseInt(selectedIndex),
+          to: parseInt(index),
+          chessPieceList: newChessPieceList,
+        })
+      );
+      return;
+    }
   };
   return (
     <div

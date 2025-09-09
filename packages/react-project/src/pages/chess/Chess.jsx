@@ -94,15 +94,16 @@ const Chess = () => {
     return chessPieceList;
   };
   const [chessPieceList, setChessPieceList] = useState(() => initChessPieceList());
+
   const { socketRef, sendMessage, connectionStatus } = useWebSocket({
     url: 'ws://localhost:2000',
     onMessage: useCallback((data) => {
       if (data.type === 'joinSuccess') {
         setPlayer(data.player);
         setIsFlipped(data.player === 1);
-        // if (data.chessPieceList) {
-        //   setChessPieceList(data.chessPieceList);
-        // }
+        if (data.chessPieceList) {
+          setChessPieceList(data.chessPieceList);
+        }
       }
 
       if (data.type === 'start') {
@@ -111,9 +112,6 @@ const Chess = () => {
       if (data.type === 'move') {
         handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: true, chessPieceList: chessPieceList });
       }
-      // if (data.type === 'reConnected') {
-      //   handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: !isFlipped });
-      // }
       if (data.type === 'opponentDisConnect') {
         setStatus(STATUS.RECONNECTING);
       }
@@ -132,15 +130,16 @@ const Chess = () => {
   };
 
   const handleMoveChessPiece = ({ from, to }) => {
-    setChessPieceList((prev) => {
-      const newBoard = prev.map((row) => row.map((piece) => ({ ...piece })));
+    // 纯函数：计算移动后的棋盘
+    const calculateNewBoard = (chessPieceList, from, to) => {
+      const newBoard = chessPieceList.map((row) => row.map((piece) => ({ ...piece })));
 
       const newRow = Math.floor(to / 9);
       const oldRow = Math.floor(from / 9);
       const newCol = to % 9;
       const oldCol = from % 9;
 
-      const movingPiece = prev[oldRow][oldCol];
+      const movingPiece = chessPieceList[oldRow][oldCol];
 
       newBoard[newRow][newCol] = {
         row: newRow,
@@ -157,10 +156,15 @@ const Chess = () => {
       };
 
       return newBoard;
+    };
+    let newBoard = calculateNewBoard(chessPieceList, from, to);
+    setChessPieceList((prev) => {
+      newBoard = calculateNewBoard(prev, from, to);
+      return newBoard;
     });
     dispatchPlayerRotation();
+    return newBoard;
   };
-
   return (
     <>
       <div className="flex h-full w-full flex-col items-center justify-center">
