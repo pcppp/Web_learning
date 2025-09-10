@@ -281,7 +281,10 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
     const type = chessPiece.type;
     // 是否选择自己的棋子
     const isOpposite = chessPiece.player && chessPiece.player !== player;
-
+    // 如果点击对手棋子，不做任何操作
+    if (isOpposite && dotsIndex.size === 0) {
+      return;
+    }
     setSelectedIndex(index);
     handleDotsIndex({ chessPiece, chessPieceList: renderedList });
     if (dotsIndex.has(index)) {
@@ -300,11 +303,6 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
           playerRotation: playerRotation,
         })
       );
-    } else {
-      if (isOpposite) {
-        return;
-      }
-      return;
     }
   };
   return (
