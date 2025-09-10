@@ -103,6 +103,8 @@ const Chess = () => {
         setIsFlipped(data.player === 1);
         if (data.chessPieceList) {
           setChessPieceList(data.chessPieceList);
+          console.log(data.playerRotation);
+          setPlayerRotation(data.playerRotation);
         }
       }
 
@@ -110,7 +112,10 @@ const Chess = () => {
         setStatus(STATUS.PLAYING);
       }
       if (data.type === 'move') {
-        handleMoveChessPiece({ from: data.from, to: data.to, isFlipped: true, chessPieceList: chessPieceList });
+        handleMoveChessPiece({
+          from: data.from,
+          to: data.to,
+        });
       }
       if (data.type === 'opponentDisConnect') {
         setStatus(STATUS.RECONNECTING);
@@ -163,7 +168,7 @@ const Chess = () => {
       return newBoard;
     });
     dispatchPlayerRotation();
-    return newBoard;
+    return { chessPieceList, playerRotation: getAnotherPlayer(playerRotation) };
   };
   return (
     <>
