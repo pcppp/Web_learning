@@ -172,24 +172,26 @@ const Chess = () => {
   };
   return (
     <>
-      <div className="flex h-full w-full flex-col items-center justify-center">
-        <PlayerContainer className="flex-1">
+      <div
+        className={`flex h-full w-full scale-40 flex-col items-center justify-center sm:scale-70 lg:scale-80 xl:scale-90 2xl:scale-100`}>
+        <PlayerContainer className="flex w-full flex-1 shrink-0 flex-col items-center justify-center">
           <PlayerPlateau
             status={status}
             player={getAnotherPlayer(player)}
             isActivate={getAnotherPlayer(player) === playerRotation}></PlayerPlateau>
         </PlayerContainer>
-
-        <Board
-          socket={socketRef}
-          handleMoveChessPiece={handleMoveChessPiece}
-          player={player}
-          isFlipped={isFlipped}
-          setPlayer={setPlayer}
-          chessPieceList={chessPieceList}
-          playerRotation={playerRotation}
-        />
-        <PlayerContainer className="flex-1">
+        <div className="aspect-square shrink px-[47px]">
+          <Board
+            socket={socketRef}
+            handleMoveChessPiece={handleMoveChessPiece}
+            player={player}
+            isFlipped={isFlipped}
+            setPlayer={setPlayer}
+            chessPieceList={chessPieceList}
+            playerRotation={playerRotation}
+          />
+        </div>
+        <PlayerContainer className="flex flex-1 shrink-0 flex-col items-center justify-center">
           <PlayerPlateau player={player} isActivate={player === playerRotation} />
         </PlayerContainer>
       </div>

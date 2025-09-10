@@ -19,8 +19,8 @@ export default function MyNavLink() {
   };
   return (
     <>
-      <div className="relative min-h-screen overflow-hidden">
-        <div className="absolute inset-0 bg-amber-200 p-4">
+      <div className="relative h-[100vh] min-h-screen w-[100vw] overflow-hidden">
+        <div className="absolute inset-0 h-full w-full bg-amber-200 p-4">
           <Outlet />
         </div>
         <div

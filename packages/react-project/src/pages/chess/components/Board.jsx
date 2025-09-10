@@ -75,11 +75,11 @@ const Grid = ({ chessPiece, isSelected, onClick, showDot }) => {
       {chessPiece.type === kong ? (
         <ChessContainer className="h-25 w-25"></ChessContainer>
       ) : (
-        <ChessContainer className="flex h-25 w-25 flex-col items-center justify-center">
+        <ChessContainer className="flex h-25 w-25 flex-grow flex-col items-center justify-center">
           <ChessPiece
             $isSelected={isSelected}
             $player={chessPiece.player}
-            className="flex h-20 w-20 flex-col items-center justify-center rounded-full text-[30px]">
+            className="h-20 w-20 flex-col items-center justify-center rounded-full text-[30px]">
             <div>{getChessNameFromType(chessPiece.type)}</div>
           </ChessPiece>
         </ChessContainer>
@@ -308,21 +308,23 @@ const Board = ({ player, playerRotation, isFlipped, chessPieceList, socket, hand
     }
   };
   return (
-    <div
-      className={`bg-[url(/chessboard2.png)] bg-cover px-[16px] py-[16px] ${isFlipped ? 'rotate-180 transform' : ''}`}>
-      {
-        <div className="gap grid grid-cols-9">
-          {renderedList.flat().map((chessPiece, index) => (
-            <div className={isFlipped ? 'rotate-180 transform' : ''} key={index}>
-              <Grid
-                chessPiece={chessPiece}
-                onClick={() => onGridClick({ chessPiece, index })}
-                isSelected={selectedIndex === index}
-                showDot={dotsIndex.has(index)}></Grid>
-            </div>
-          ))}
-        </div>
-      }
+    <div className="">
+      <div
+        className={`h-full w-full bg-[url(/chessboard2.png)] bg-contain bg-center bg-no-repeat px-[16px] py-[16px] ${isFlipped ? 'rotate-180 transform' : ''}`}>
+        {
+          <div className="gap grid h-full w-full grid-cols-9">
+            {renderedList.flat().map((chessPiece, index) => (
+              <div className={isFlipped ? 'rotate-180 transform' : ''} key={index}>
+                <Grid
+                  chessPiece={chessPiece}
+                  onClick={() => onGridClick({ chessPiece, index })}
+                  isSelected={selectedIndex === index}
+                  showDot={dotsIndex.has(index)}></Grid>
+              </div>
+            ))}
+          </div>
+        }
+      </div>
     </div>
   );
 };
