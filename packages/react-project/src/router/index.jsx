@@ -1,4 +1,4 @@
-import { Chess, MyNavLink, MyUpload, TicTacToe, VirtualList, WebsocketDemo, StateColocation } from './pages';
+import { Chess, MyNavLink, MyUpload, TicTacToe, VirtualList, WebsocketDemo, StateColocation, DemoPage } from './pages';
 
 const NavLink = [
   {
@@ -31,6 +31,11 @@ const NavLink = [
     title: '象棋',
     path: 'chess',
     element: <Chess />,
+  },
+  {
+    title: 'demo',
+    path: 'demo',
+    element: <DemoPage />,
   },
 ];
 export default [

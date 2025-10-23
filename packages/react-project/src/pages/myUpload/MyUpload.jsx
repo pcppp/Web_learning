@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import Dropzone from 'react-dropzone';
 import MyDropzone from './components/MyDropzone';
 import MyUploadzone from './components/MyUploadzone';
+import MyDrag from './components/MyDrag';
 function MyUpload({ uploadFolder = true, accept = 'image/*', multiple = false }) {
   return (
     <>
@@ -10,6 +11,7 @@ function MyUpload({ uploadFolder = true, accept = 'image/*', multiple = false })
         {/* <MyUploadzone></MyUploadzone> */}
         <MyDropzone></MyDropzone>
       </div>
+      <MyDrag></MyDrag>
     </>
   );
 }
