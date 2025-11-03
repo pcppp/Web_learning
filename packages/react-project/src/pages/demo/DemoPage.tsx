@@ -17,7 +17,6 @@ export default function App() {
     defaultValues: initial,
     mode: 'onChange',
   });
-  console.log('form', form);
   // 订阅表单值变化（演示）
   useEffect(() => {
     const subscription = form.watch((value) => {

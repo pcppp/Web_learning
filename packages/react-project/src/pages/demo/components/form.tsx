@@ -54,6 +54,6 @@ export function FormField<TFormValues extends FieldValues, TName extends FieldPa
 ) {
   const { control, name, render } = props;
   // useController 会注册字段并返回 field、fieldState、formState
-  const controller = useController({ name, control } as UseControllerProps<TFormValues, TName>);
+  const controller = useController({ name } as UseControllerProps<TFormValues, TName>);
   return render({ field: controller.field, fieldState: controller.fieldState, formState: controller.formState });
 }
