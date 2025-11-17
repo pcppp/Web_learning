@@ -4,6 +4,52 @@ const http = axios.create({
   baseURL: '/api', // 你的API地址
   timeout: 600000, // 请求超时时间
 });
+
+// 请求拦截器
+http.interceptors.request.use(
+  (config) => {
+    // 从 localStorage 获取 token
+    const token = localStorage.getItem('chess_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+      if (config.method === 'post' || config.method === 'put') {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          config.data = {
+            ...config.data,
+            user: {
+              userId: payload.userId,
+              username: payload.username,
+            },
+          };
+        } catch (e) {
+          console.error('解析 token 失败:', e);
+        }
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// 响应拦截器
+http.interceptors.response.use(
+  (response) => {
+    return response.data;
+  },
+  (error) => {
+    // Token 过期或无效
+    if (error.response?.status === 401) {
+      localStorage.removeItem('chess_token');
+      localStorage.removeItem('chess_user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 http.useAbortRequest = (mode, abortRef) => {
   const controller = new AbortController();
   const signal = controller.signal;
@@ -13,38 +59,5 @@ http.useAbortRequest = (mode, abortRef) => {
     else return http[mode](url, { ...config, signal });
   };
 };
+
 export default http;
-
-// // 请求拦截器
-// http.interceptors.request.use(
-//   (config) => {
-//     // 在发送请求之前做些什么：例如添加token
-//     // config.headers['Authorization'] = '你的token';
-//     return config;
-//   },
-//   (error) => {
-//     // 对请求错误做些什么
-//     return Promise.reject(error);
-//   }
-// );
-
-// // 响应拦截器
-// http.interceptors.response.use(
-//   (response) => {
-//     // 对响应数据做点什么
-//     const res = response.data;
-//     // 根据你的业务处理回调
-//     if (res.code !== 200) {
-//       // 处理错误
-//       // ...
-//       return Promise.reject(new Error(res.message || 'Error'));
-//     } else {
-//       return res;
-//     }
-//   },
-//   (error) => {
-//     // 对响应错误做点什么
-//     console.log('err' + error); // for debug
-//     return Promise.reject(error);
-//   }
-// );

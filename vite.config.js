@@ -20,11 +20,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3001', // 模拟服务器地址
         changeOrigin: true,
-        rewrite: (path) => {
-          return path.replace(/^\/api/, '');
-        },
+        // 不需要 rewrite，保持 /api 前缀
       },
     },
   },

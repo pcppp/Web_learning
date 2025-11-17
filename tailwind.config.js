@@ -5,6 +5,8 @@ export default {
     extend: {
       backgroundImage: {
         chessboard: "url('./chessboard.png')",
+        chessIdle: "url('./chessIdle.png')",
+        chessBettle: "url('./chessBettle.png')",
       },
     },
   },

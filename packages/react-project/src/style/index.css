@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 @plugin 'tailwindcss-animate';
-@import "tw-animate-css";
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 html,
@@ -10,6 +10,11 @@ body,
   @apply h-full min-h-screen w-full;
   margin: 0;
   padding: 0;
+}
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @theme inline {

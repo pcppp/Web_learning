@@ -9,13 +9,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
+import { AuthInitializer } from '@/components/AuthInitializer';
+
 import App from './App';
 import './style/index.css';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <AuthInitializer>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </AuthInitializer>
   </React.StrictMode>
 );

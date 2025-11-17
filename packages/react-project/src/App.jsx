@@ -24,9 +24,9 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
     </div>
   );
 };
+
 export default function MyApp() {
   const elements = useRoutes(routers);
-  // const { topic, TOPIC, dispatchTopic, SelectComponent } = useTopic();
 
   return (
     <ErrorBoundary
